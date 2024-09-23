@@ -1,0 +1,111 @@
+# css styles.css
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+h1 {
+    color: #333;
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+nav ul li {
+    display: inline;
+    margin-right: 10px;
+}
+
+form {
+    margin-top: 20px;
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+}
+
+input {
+    margin-bottom: 10px;
+}
+
+button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+.tela-inicial-time {
+    display: flex; /* Habilita o flexbox */
+    flex-direction: column; /* Alinha os itens na coluna */
+    justify-content: center; /* Centraliza verticalmente */
+    align-items: center; /* Centraliza horizontalmente */
+    height: 90vh; /* Ocupa toda a altura da tela */
+    margin: 0; /* Remove margens padrão */
+}
+
+
+.menu-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-left: 10px;
+}
+
+#menu-button {
+    background-color: #007bff; /* Cor do botão */
+    color: white; /* Cor do texto */
+    border: none; /* Remove bordas */
+    padding: 10px 20px; /* Espaçamento interno */
+    border-radius: 5px; /* Cantos arredondados */
+    cursor: pointer; /* Muda o cursor para indicar que é clicável */
+    font-size: 16px; /* Tamanho da fonte */
+    transition: background-color 0.3s; /* Efeito de transição */
+}
+
+#menu-button:hover {
+    background-color: #0056b3; /* Cor ao passar o mouse */
+}
+
+#menu {
+    position: absolute; /* Para que o menu apareça abaixo do botão */
+    top: 50px; /* Ajuste conforme necessário */
+    background: white; /* Cor de fundo do menu */
+    border-radius: 5px; /* Cantos arredondados */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Sombra */
+    z-index: 1000; /* Para garantir que o menu fique acima de outros elementos */
+}
+
+#menu ul {
+    list-style: none; /* Remove os marcadores da lista */
+    padding: 0; /* Remove o preenchimento */
+    margin: 0; /* Remove a margem */
+    display: flex; /* Habilita o flexbox */
+    flex-direction: column; /* Exibe os itens verticalmente */
+}
+
+#menu li {
+    padding: 10px 20px; /* Espaçamento interno */
+}
+
+#menu li a {
+    text-decoration: none; /* Remove o sublinhado */
+    color: black; /* Cor do texto */
+    transition: color 0.3s; /* Efeito de transição */
+}
+
+#menu li a:hover {
+    color: #007bff; /* Cor ao passar o mouse */
+}
+
+
