@@ -12,11 +12,11 @@
         <nav id="menu" style="display: none;">
             <ul>
                 <li><a href="/">Home</a></li>
-                <li><a href="/funcionario">Funcionário</a></li>
-                <li><a href="/endereco">Endereço</a></li>
+                <li><a href="/funcionarios">Funcionário</a></li>
+                <li><a href="/enderecos">Endereço</a></li>
                 <li><a href="/ponto">Ponto</a></li>
-                <li><a href="/departamento">Departamento</a></li>
-                <li><a href="/funcao">Função</a></li>
+                <li><a href="/departamentos">Departamento</a></li>
+                <li><a href="/funcoes">Função</a></li>
                 <li><a href="/evento">Evento</a></li>
                 <li><a href="/usuario">Usuário</a></li>
             </ul>
@@ -29,6 +29,29 @@
     </div>
     
     <script src="../static/script.js"></script>
+    <script>
+        const menuButton = document.getElementById('menu-button');
+        const menu = document.getElementById('menu');
     
+        // Função para abrir ou fechar o menu
+        menuButton.addEventListener('click', function(event) {
+            event.stopPropagation(); // Impede o evento de clique de propagar para o document
+            menu.style.display = (menu.style.display === 'none' || menu.style.display === '') ? 'block' : 'none';
+        });
+    
+        // Fecha o menu ao clicar em qualquer lugar fora dele
+        document.addEventListener('click', function(event) {
+            if (menu.style.display === 'block') {
+                menu.style.display = 'none';
+            }
+        });
+    
+        // Fecha o menu ao clicar em um link
+        menu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', function() {
+                menu.style.display = 'none'; // Fecha o menu ao clicar em um link
+            });
+        });
+    </script>
 </body>
 </html>

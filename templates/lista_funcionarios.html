@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Funcionários</title>
+    <title>Lista de Funcionarios</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         body {
@@ -20,15 +20,28 @@
             left: 10px; /* Distância da esquerda */
         }
         .container {
-            width: 70%; /* Limita a largura a 70% */
-            max-width: 400px; /* Largura máxima do formulário */
+            width: 80%; /* Limita a largura a 70% */
+            max-width: 800px; /* Largura máxima do formulário */
             height: auto; /* Ajusta a altura automaticamente */
             background: white;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             margin-top: 70px; /* Espaço do botão de menu */
+            overflow-x: auto;
         }
+        table {
+            width: 100%; /* A tabela ocupa toda a largura do container */
+            border-collapse: separate; /* Altera para bordas separadas para permitir o espaçamento */
+            border-spacing: 15px; /* Espaçamento entre as colunas */
+        }
+         th, td {
+            /* border: 1px solid #ddd;  */
+            padding: 12px;  
+            text-align: left; 
+            font-size: 14px; 
+        }
+
         h1, h2 {
             text-align: center;
         }
@@ -56,6 +69,10 @@
         button:hover {
             background-color: #0056b3;
         }
+        /* .action-buttons{
+            padding-left: 120px;
+        }   */
+        
     </style>
 </head>
 <body>
@@ -64,70 +81,54 @@
         <nav id="menu" style="display: none;">
             <ul>
                 <li><a href="/">Home</a></li>
-                <li><a href="/funcionario">Funcionários</a></li>
-                <li><a href="/enderecos">Endereços</a></li>
-                <li><a href="/ponto">Pontos</a></li>
-                <li><a href="/departamentos">Departamentos</a></li>
-                <li><a href="/funcao">Funções</a></li>
-                <li><a href="/evento">Eventos</a></li>
-                <li><a href="/usuario">Usuários</a></li>
+                <li><a href="/funcionarios">Funcionário</a></li>
+                <li><a href="/enderecos">Endereço</a></li>
+                <li><a href="/ponto">Ponto</a></li>
+                <li><a href="/departamentos">Departamento</a></li>
+                <li><a href="/funcoes">Função</a></li>
+                <li><a href="/evento">Evento</a></li>
+                <li><a href="/usuario">Usuário</a></li>
             </ul>
         </nav>
     </div>
 
     <div class="container">
-        <h3>Gerenciar Funcionário</h3>
-        <form id="funcionario-form">
-            <label for="matricula">Matrícula:</label>
-            <input type="number" id="matricula" name="matricula" required>
-
-            <label for="nome">Nome:</label>
-            <input type="text" id="nome" name="nome" required>
-
-            <label for="funcao">Função:</label>
-            <input type="text" id="funcao" name="funcao" required>
-
-            <label for="data_inicio">Data de Início:</label>
-            <input type="date" id="data_inicio" name="data_inicio" required>
-
-            <label for="data_termino">Data de Término:</label>
-            <input type="date" id="data_termino" name="data_termino">
-
-            <label for="departamento">Departamento:</label>
-            <input type="text" id="departamento" name="departamento" required>
-
-            <label for="gerente">Gerente:</label>
-            <input type="text" id="gerente" name="gerente">
-
-            <label for="endereco">Endereço:</label>
-            <input type="text" id="endereco" name="endereco">
-
-            <label for="telefone">Telefone:</label>
-            <input type="text" id="telefone" name="telefone" required>
-
-            <label for="cpf">CPF:</label>
-            <input type="text" id="cpf" name="cpf" required>
-
-            <label for="rg">RG:</label>
-            <input type="text" id="rg" name="rg" required>
-
-            <label for="banco">Banco:</label>
-            <input type="text" id="banco" name="banco" required>
-
-            <label for="agencia">Agência:</label>
-            <input type="text" id="agencia" name="agencia" required>
-
-            <label for="conta_corrente">Conta Corrente:</label>
-            <input type="text" id="conta_corrente" name="conta_corrente" required>
-
-            <button type="button" id="buscar-funcionario">Buscar Funcionário</button>
-            <button type="submit" id="adicionar-funcionario">Adicionar Funcionário</button>
-            <button type="button" id="atualizar-funcionario">Atualizar Funcionário</button>
-        </form>
+        <h2>Lista de Funcionarios</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Matricula</th>
+                    <th>Nome</th>
+                    <th>Função</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            {% if funcionarios %}
+            <tbody>
+                {% for funcionario in funcionarios %}
+                <tr>
+                    <td>{{ funcionario[0] }}</td>
+                    <td>{{ funcionario[1] }}</td>
+                    <td>{{ funcionario[2] }}</td>
+                    
+                    <td class="action-buttons">
+                        <a href="{{ url_for('update_funcionario', matricula=funcionario[0]) }}"><button>Editar</button></a>
+                        <form method="POST" action="{{ url_for('delete_funcionario', matricula=funcionario[0]) }}" style="display:inline;">
+                            <button type="submit" onclick="return confirm('Tem certeza que deseja remover este funcionario?')">Remover</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            {% else %}
+                <p>Nenhum funcionario encontrado.</p>
+            {% endif %}
+        </table>
+        <a href="{{ url_for('add_funcionario') }}"><button>Adicionar Novo Funcionario</button></a>
     </div>
 
     <script src="../static/script.js"></script>
-    <!-- <script>
+    <script>
         const menuButton = document.getElementById('menu-button');
         const menu = document.getElementById('menu');
     
@@ -151,6 +152,6 @@
             });
         });
     </script>
-     -->
+    
 </body>
 </html>

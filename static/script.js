@@ -1,7 +1,7 @@
-document.getElementById('menu-button').addEventListener('click', function() {
-    const menu = document.getElementById('menu');
-    menu.style.display = menu.style.display === 'none' || menu.style.display === '' ? 'block' : 'none';
-});
+// document.getElementById('menu-button').addEventListener('click', function() {
+//     const menu = document.getElementById('menu');
+//     menu.style.display = menu.style.display === 'none' || menu.style.display === '' ? 'block' : 'none';
+// });
 
 // Busca funcionário por matrícula e preenche o formulário
 document.getElementById('buscar-funcionario').addEventListener('click', function() {

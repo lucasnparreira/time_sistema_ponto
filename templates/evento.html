@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evento</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Alinha o conteúdo ao topo */
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .menu-container {
+            position: absolute; /* Permite que o botão fique fixo na tela */
+            top: 10px; /* Distância do topo */
+            left: 10px; /* Distância da esquerda */
+        }
+        .container {
+            width: 70%; /* Limita a largura a 70% */
+            max-width: 400px; /* Largura máxima do formulário */
+            height: auto; /* Ajusta a altura automaticamente */
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 70px; /* Espaço do botão de menu */
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Espaçamento entre os campos */
+        }
+        label {
+            margin-bottom: 5px;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu-container">
+        <button id="menu-button">Menu</button>
+        <nav id="menu" style="display: none;">
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/funcionario">Funcionário</a></li>
+                <li><a href="/enderecos">Endereço</a></li>
+                <li><a href="/ponto">Ponto</a></li>
+                <li><a href="/departamento">Departamento</a></li>
+                <li><a href="/funcao">Função</a></li>
+                <li><a href="/evento">Evento</a></li>
+                <li><a href="/usuario">Usuário</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="container">
+        <h3>{{ action }} Evento</h3>
+        {%if action == "Atualizar"%}
+        <form method="POST" action="{{ url_for('edit_endereco', id=endereco['id']) }}">
+        {%else%}
+        <form method="POST" action="{{ url_for('add_endereco') }}">
+        {%endif%}
+            <input type="hidden" name="id" value="{{ endereco['id'] }}">
+            <label for="rua">Rua:</label>
+            <input type="text" id="rua" name="rua" value="{{ endereco['rua'] }}" required>
+
+            <label for="bairro">Bairro:</label>
+            <input type="text" id="bairro" name="bairro" value="{{ endereco['bairro'] }}" required>
+
+            <label for="cidade">Cidade:</label>
+            <input type="text" id="cidade" name="cidade" value="{{ endereco['cidade'] }}" required>
+
+            <label for="pais">País:</label>
+            <input type="text" id="pais" name="pais" value="{{ endereco['pais'] }}" required>
+
+            <button type="submit">{{ action }} Endereço</button>
+        </form>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
