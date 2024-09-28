@@ -54,15 +54,44 @@ button:hover {
 }
 
 
-.menu-container {
+/* .menu-container {
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     margin-left: 10px;
+} */
+
+.menu-container {
+    display: flex; /* Usa flexbox para o layout horizontal */
+    gap: 10px; /* Espaçamento entre os botões */
+    margin-bottom: 10px; /* Espaçamento abaixo dos botões */
+    position: relative; 
 }
 
-#menu-button {
+nav {
+    position: absolute; /* Para evitar que o nav ocupe espaço */
+    background-color: white; /* Cor de fundo do menu */
+    border: 1px solid #ccc; /* Borda para o menu */
+    z-index: 1000; /* Certifique-se de que o menu fique acima de outros elementos */
+}
+
+nav ul {
+    list-style-type: none; /* Remove a lista padrão */
+    padding: 0; /* Remove o padding */
+    margin: 0; /* Remove a margem */
+}
+
+nav ul li {
+    padding: 8px 12px; /* Espaçamento dentro dos itens do menu */
+}
+
+nav ul li a {
+    text-decoration: none; /* Remove o sublinhado dos links */
+    color: black; /* Cor do texto */
+}
+
+#menu-button-cadastro, #menu-button-relatorio {
     background-color: #007bff; /* Cor do botão */
     color: white; /* Cor do texto */
     border: none; /* Remove bordas */
@@ -79,14 +108,27 @@ button:hover {
 
 #menu {
     position: absolute; /* Para que o menu apareça abaixo do botão */
-    top: 50px; /* Ajuste conforme necessário */
+    top: 40px; /* Ajuste conforme necessário */
+    left: 0; /* Para alinhar o menu à esquerda do botão */
     background: white; /* Cor de fundo do menu */
     border-radius: 5px; /* Cantos arredondados */
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Sombra */
     z-index: 1000; /* Para garantir que o menu fique acima de outros elementos */
+    display: none; /* Inicia como oculto */
 }
 
-#menu ul {
+#menu-relatorio {
+    position: absolute; /* Para que o menu apareça abaixo do botão */
+    top: 40px; /* Ajuste conforme necessário */
+    left: -50; /* Para alinhar o menu à esquerda do botão */
+    background: white; /* Cor de fundo do menu */
+    border-radius: 5px; /* Cantos arredondados */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Sombra */
+    z-index: 1000; /* Para garantir que o menu fique acima de outros elementos */
+    display: none; /* Inicia como oculto */
+}
+
+#menu ul, #menu-relatorio ul {
     list-style: none; /* Remove os marcadores da lista */
     padding: 0; /* Remove o preenchimento */
     margin: 0; /* Remove a margem */
@@ -94,17 +136,17 @@ button:hover {
     flex-direction: column; /* Exibe os itens verticalmente */
 }
 
-#menu li {
+#menu li, #menu-relatorio li {
     padding: 10px 20px; /* Espaçamento interno */
 }
 
-#menu li a {
+#menu li a, #menu-relatorio li a {
     text-decoration: none; /* Remove o sublinhado */
     color: black; /* Cor do texto */
     transition: color 0.3s; /* Efeito de transição */
 }
 
-#menu li a:hover {
+#menu li a:hover, #menu-relatorio li a:hover {
     color: #007bff; /* Cor ao passar o mouse */
 }
 
