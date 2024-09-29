@@ -416,5 +416,192 @@ def list_funcoes():
     
     return render_template('lista_funcoes.html', funcoes=funcoes)
 
+
+@app.route('/evento/novo', methods=['GET','POST'])
+def add_evento():
+    if request.method == 'POST':
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        #data = request.get_json()
+        codigo = request.form.get('codigo')
+        descricao = request.form.get('descricao')
+
+        if not all([descricao]):
+            return jsonify({'error':'Dados incompletos'}), 404
+        
+        cursor.execute('INSERT INTO EVENTO (codigo, descricao) VALUES (?, ?)', (codigo, descricao,))
+        conn.commit()
+        conn.close()
+
+        return redirect(url_for('list_eventos'))
+    
+    return render_template('evento.html', action='Cadastrar', evento={})
+
+@app.route('/evento/<int:id>', methods=['POST'])
+def edit_evento(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    #data = request.get_json()
+
+    id = request.form.get('id')
+    codigo = request.form.get('codigo')
+    descricao = request.form.get('descricao')
+
+    cursor.execute('SELECT * FROM EVENTO WHERE id = ?', (id,))
+    evento = cursor.fetchone()
+
+    if not evento:
+        return jsonify({'error': 'Evento não encontrado'}), 404
+
+    cursor.execute('UPDATE EVENTO SET codigo = ?, descricao = ? WHERE id = ?', (codigo, descricao, id))
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('list_eventos'))
+
+@app.route('/evento/<int:id>/delete', methods=['POST'])
+def delete_evento(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Verificar se o departamento existe
+    cursor.execute('SELECT * FROM EVENTO WHERE id = ?', (id,))
+    evento = cursor.fetchone()
+
+    if not evento:
+        conn.close()
+        return jsonify({'error': 'Evento não encontrado'}), 404
+    
+    # Excluir o evento
+    cursor.execute('DELETE FROM EVENTO WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+
+    # Redirecionar de volta para a lista de departamentos
+    return redirect(url_for('list_eventos'))
+
+
+
+@app.route('/evento/<int:id>', methods=['GET'])
+def view_evento(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM EVENTO WHERE id = ?', (id,))
+    evento = cursor.fetchone()
+    conn.close()
+    
+    if evento:
+        return render_template('evento.html', action='Atualizar', evento=evento)
+    return redirect(url_for('list_eventos'))
+
+@app.route('/eventos')
+def list_eventos():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM EVENTO')
+    eventos = cursor.fetchall()
+    conn.close()
+    
+    return render_template('lista_eventos.html', evento=eventos)
+
+
+# hora TEXT NOT NULL,
+#     data TEXT NOT NULL,
+#     funcionario INTEGER, -- Definir o tipo da coluna
+#     evento INTEGER,
+
+@app.route('/ponto/cadastro', methods=['GET','POST'])
+def add_ponto():
+    if request.method == 'POST':
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        #data = request.get_json()
+        hora_entrada = request.form.get('hora_entrada')
+        hora_saida = request.form.get('hora_saida')
+        data = request.form.get('data')
+        funcionario = request.form.get('funcionario')
+        evento = request.form.get('evento')
+
+        if not all([hora_entrada, hora_saida, data, funcionario, evento]):
+            return jsonify({'error':'Dados incompletos'}), 404
+        
+        cursor.execute('INSERT INTO PONTO (funcionario, data, hora_entrada, hora_saida, evento) VALUES (?, ?, ?, ?, ?)', (funcionario, data, hora_entrada, hora_saida, evento,))
+        conn.commit()
+        conn.close()
+
+        return redirect(url_for('list_pontos'))
+    
+    return render_template('ponto.html', action='Cadastrar', ponto={})
+
+@app.route('/ponto/<int:id>', methods=['POST'])
+def edit_ponto(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    #data = request.get_json()
+
+    id = request.form.get('id')
+    hora_entrada = request.form.get('hora_entrada')
+    hora_saida = request.form.get('hora_saida')
+    data = request.form.get('data')
+    funcionario = request.form.get('funcionario')
+    evento = request.form.get('evento')
+
+    cursor.execute('SELECT * FROM EVENTO WHERE id = ?', (id,))
+    ponto = cursor.fetchone()
+
+    if not ponto:
+        return jsonify({'error': 'Ponto não encontrado'}), 404
+
+    cursor.execute('UPDATE PONTO SET funcionario = ?, data = ?, hora_entrada = ?, hora_saida = ?, evento = ? WHERE id = ?', (hora_entrada, hora_saida, data, funcionario, evento, id))
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('list_pontos'))
+
+@app.route('/ponto/<int:id>/delete', methods=['POST'])
+def delete_ponto(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Verificar se o ponto existe
+    cursor.execute('SELECT * FROM PONTO WHERE id = ?', (id,))
+    ponto = cursor.fetchone()
+
+    if not ponto:
+        conn.close()
+        return jsonify({'error': 'Ponto não encontrado'}), 404
+    
+    # Excluir o ponto
+    cursor.execute('DELETE FROM PONTO WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+
+    # Redirecionar de volta para a lista de pontos
+    return redirect(url_for('list_pontos'))
+
+
+
+@app.route('/ponto/<int:id>', methods=['GET'])
+def view_ponto(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM PONTO WHERE id = ?', (id,))
+    ponto = cursor.fetchone()
+    conn.close()
+    
+    if ponto:
+        return render_template('ponto.html', action='Atualizar', ponto=ponto)
+    return redirect(url_for('list_pontos'))
+
+@app.route('/pontos')
+def list_pontos():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM PONTO')
+    pontos = cursor.fetchall()
+    conn.close()
+    
+    return render_template('lista_pontos.html', pontos=pontos)
+
 if __name__ == '__main__':
     app.run(debug=True)

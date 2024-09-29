@@ -6,71 +6,35 @@
     <title>Funcionários</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start; /* Alinha o conteúdo ao topo */
-            min-height: 100vh;
-            margin: 0;
-            background-color: #f4f4f4;
-        }
-        .menu-container {
-            position: absolute; /* Permite que o botão fique fixo na tela */
-            top: 10px; /* Distância do topo */
-            left: 10px; /* Distância da esquerda */
-        }
-        .container {
-            width: 70%; /* Limita a largura a 70% */
-            max-width: 400px; /* Largura máxima do formulário */
-            height: auto; /* Ajusta a altura automaticamente */
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin-top: 70px; /* Espaço do botão de menu */
-        }
-        h1, h2 {
-            text-align: center;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px; /* Espaçamento entre os campos */
-        }
-        label {
-            margin-bottom: 5px;
-        }
-        input {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
+        
     </style>
 </head>
 <body>
     <div class="menu-container">
-        <button id="menu-button">Menu</button>
+        <button id="menu-button-cadastro">Cadastro</button>
         <nav id="menu" style="display: none;">
             <ul>
                 <li><a href="/">Home</a></li>
-                <li><a href="/funcionario">Funcionários</a></li>
-                <li><a href="/enderecos">Endereços</a></li>
-                <li><a href="/ponto">Pontos</a></li>
-                <li><a href="/departamentos">Departamentos</a></li>
-                <li><a href="/funcao">Funções</a></li>
-                <li><a href="/evento">Eventos</a></li>
-                <li><a href="/usuario">Usuários</a></li>
+                <li><a href="/funcionario">Funcionário</a></li>
+                <li><a href="/endereco/novo">Endereço</a></li>
+                <li><a href="/ponto/cadastro">Ponto</a></li>
+                <li><a href="/departamento/novo">Departamento</a></li>
+                <li><a href="/funcao/novo">Função</a></li>
+                <li><a href="/evento/novo">Evento</a></li>
+                <li><a href="/usuario">Usuário</a></li>
+            </ul>
+        </nav>
+        <button id="menu-button-relatorio">Relatório</button>
+        <nav id="menu-relatorio" style="display: none;">
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/funcionarios">Funcionário</a></li>
+                <li><a href="/enderecos">Endereço</a></li>
+                <li><a href="/ponto">Ponto</a></li>
+                <li><a href="/departamentos">Departamento</a></li>
+                <li><a href="/funcoes">Função</a></li>
+                <li><a href="/eventos">Evento</a></li>
+                <li><a href="/usuarios">Bunga</a></li>
             </ul>
         </nav>
     </div>
@@ -126,7 +90,7 @@
         </form>
     </div>
 
-    <script src="../static/script.js"></script>
+    <script src="/static/script.js"></script>
     <!-- <script>
         const menuButton = document.getElementById('menu-button');
         const menu = document.getElementById('menu');
@@ -241,27 +205,7 @@
 
         // tela de index.html
         // Abre ou fecha o menu ao clicar no botão
-        document.getElementById('menu-button').addEventListener('click', function(event) {
-            const menu = document.getElementById('menu');
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-            event.stopPropagation(); // Evita que o clique no botão feche o menu imediatamente
-        });
-
-        // Fecha o menu ao clicar fora dele
-        document.addEventListener('click', function(event) {
-            const menu = document.getElementById('menu');
-            if (menu.style.display === 'block') {
-                menu.style.display = 'none';
-            }
-        });
-
-        // Fecha o menu ao clicar em qualquer link
-        document.querySelectorAll('#menu a').forEach(link => {
-            link.addEventListener('click', function() {
-                const menu = document.getElementById('menu');
-                menu.style.display = 'none';
-            });
-        });
+        
 
     </script>
 </body>

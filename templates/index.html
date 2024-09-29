@@ -5,35 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Controle de Ponto</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
-        .menu-container {
-            display: flex; /* Usa flexbox para o layout horizontal */
-            gap: 10px; /* Espaçamento entre os botões */
-            margin-bottom: 10px; /* Espaçamento abaixo dos botões */
-        }
-
-        nav {
-            position: absolute; /* Para evitar que o nav ocupe espaço */
-            background-color: white; /* Cor de fundo do menu */
-            border: 1px solid #ccc; /* Borda para o menu */
-            z-index: 1000; /* Certifique-se de que o menu fique acima de outros elementos */
-        }
-
-        nav ul {
-            list-style-type: none; /* Remove a lista padrão */
-            padding: 0; /* Remove o padding */
-            margin: 0; /* Remove a margem */
-        }
-
-        nav ul li {
-            padding: 8px 12px; /* Espaçamento dentro dos itens do menu */
-        }
-
-        nav ul li a {
-            text-decoration: none; /* Remove o sublinhado dos links */
-            color: black; /* Cor do texto */
-        }
-    </style>
 </head>
 <body>
     <div class="menu-container">
@@ -42,11 +13,11 @@
             <ul>
                 <li><a href="/">Home</a></li>
                 <li><a href="/funcionario">Funcionário</a></li>
-                <li><a href="/endereco">Endereço</a></li>
-                <li><a href="/ponto">Ponto</a></li>
-                <li><a href="/departamento">Departamento</a></li>
+                <li><a href="/endereco/novo">Endereço</a></li>
+                <li><a href="/ponto/cadastro">Ponto</a></li>
+                <li><a href="/departamento/novo">Departamento</a></li>
                 <li><a href="/funcao/novo">Função</a></li>
-                <li><a href="/evento">Evento</a></li>
+                <li><a href="/evento/novo">Evento</a></li>
                 <li><a href="/usuario">Usuário</a></li>
             </ul>
         </nav>
@@ -70,68 +41,7 @@
         <h2>Sistema de Controle de Ponto</h2>
     </div>
 
-    <script>
-        const menuButtonCadastro = document.getElementById('menu-button-cadastro');
-        const menuButtonRelatorio = document.getElementById('menu-button-relatorio');
-        const menu = document.getElementById('menu');
-        const menuRelatorio = document.getElementById('menu-relatorio');
-
-        function toggleMenu(event) {
-            event.stopPropagation();
-            // Oculta o menu de relatório se ele estiver visível
-            if (menuRelatorio.style.display === 'block') {
-                menuRelatorio.style.display = 'none';
-            }
-
-            // Mostra o menu de cadastro
-            const rect = menuButtonCadastro.getBoundingClientRect(); // Posição do botão Cadastro
-            menu.style.left = `${rect.left}px`;
-            menu.style.top = `${rect.bottom + window.scrollY}px`; // Adiciona a posição do botão ao topo
-            menu.style.display = 'block'; // Mostra o menu de cadastro
-        }
-
-        function toggleMenuRelatorio(event) {
-            event.stopPropagation();
-            // Oculta o menu de cadastro se ele estiver visível
-            if (menu.style.display === 'block') {
-                menu.style.display = 'none';
-            }
-
-            // Mostra o menu de relatório
-            const rect = menuButtonRelatorio.getBoundingClientRect(); // Posição do botão Relatório
-            menuRelatorio.style.left = `${rect.left}px`;
-            menuRelatorio.style.top = `${rect.bottom + window.scrollY}px`; // Adiciona a posição do botão ao topo
-            menuRelatorio.style.display = 'block'; // Mostra o menu de relatório
-        }
-
-        menuButtonCadastro.addEventListener('click', toggleMenu);
-        menuButtonRelatorio.addEventListener('click', toggleMenuRelatorio);
-
-        // Fecha os menus ao clicar em qualquer lugar fora deles
-        document.addEventListener('click', function(event) {
-            if (menu.style.display === 'block') {
-                menu.style.display = 'none';
-            }
-            if (menuRelatorio.style.display === 'block') {
-                menuRelatorio.style.display = 'none';
-            }
-        });
-
-        // Fecha o menu de cadastro ao clicar em um link
-        menu.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', function() {
-                menu.style.display = 'none'; // Fecha o menu de cadastro ao clicar em um link
-            });
-        });
-
-        // Fecha o menu de relatório ao clicar em um link
-        menuRelatorio.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', function() {
-                menuRelatorio.style.display = 'none'; // Fecha o menu de relatório ao clicar em um link
-            });
-        });
-
-    </script>
+    <script src="/static/script.js"></script>
 
 </body>
 </html>

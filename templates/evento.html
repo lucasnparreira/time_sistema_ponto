@@ -60,17 +60,30 @@
 </head>
 <body>
     <div class="menu-container">
-        <button id="menu-button">Menu</button>
+        <button id="menu-button-cadastro">Cadastro</button>
         <nav id="menu" style="display: none;">
             <ul>
                 <li><a href="/">Home</a></li>
                 <li><a href="/funcionario">Funcionário</a></li>
+                <li><a href="/endereco/novo">Endereço</a></li>
+                <li><a href="/ponto/cadastro">Ponto</a></li>
+                <li><a href="/departamento/novo">Departamento</a></li>
+                <li><a href="/funcao/novo">Função</a></li>
+                <li><a href="/evento/novo">Evento</a></li>
+                <li><a href="/usuario">Usuário</a></li>
+            </ul>
+        </nav>
+        <button id="menu-button-relatorio">Relatório</button>
+        <nav id="menu-relatorio" style="display: none;">
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/funcionarios">Funcionário</a></li>
                 <li><a href="/enderecos">Endereço</a></li>
                 <li><a href="/ponto">Ponto</a></li>
-                <li><a href="/departamento">Departamento</a></li>
-                <li><a href="/funcao">Função</a></li>
-                <li><a href="/evento">Evento</a></li>
-                <li><a href="/usuario">Usuário</a></li>
+                <li><a href="/departamentos">Departamento</a></li>
+                <li><a href="/funcoes">Função</a></li>
+                <li><a href="/eventos">Evento</a></li>
+                <li><a href="/usuarios">Bunga</a></li>
             </ul>
         </nav>
     </div>
@@ -78,24 +91,18 @@
     <div class="container">
         <h3>{{ action }} Evento</h3>
         {%if action == "Atualizar"%}
-        <form method="POST" action="{{ url_for('edit_endereco', id=endereco['id']) }}">
+        <form method="POST" action="{{ url_for('edit_evento', id=evento['id']) }}">
         {%else%}
-        <form method="POST" action="{{ url_for('add_endereco') }}">
+        <form method="POST" action="{{ url_for('add_evento') }}">
         {%endif%}
-            <input type="hidden" name="id" value="{{ endereco['id'] }}">
-            <label for="rua">Rua:</label>
-            <input type="text" id="rua" name="rua" value="{{ endereco['rua'] }}" required>
+            <input type="hidden" name="id" value="{{ evento['id'] }}">
+            <label for="codigo">Codigo:</label>
+            <input type="text" id="codigo" name="codigo" value="{{ evento['codigo'] }}" required>
 
-            <label for="bairro">Bairro:</label>
-            <input type="text" id="bairro" name="bairro" value="{{ endereco['bairro'] }}" required>
+            <label for="descricao">Descrição:</label>
+            <input type="text" id="descricao" name="descricao" value="{{ evento['descricao'] }}" required>
 
-            <label for="cidade">Cidade:</label>
-            <input type="text" id="cidade" name="cidade" value="{{ endereco['cidade'] }}" required>
-
-            <label for="pais">País:</label>
-            <input type="text" id="pais" name="pais" value="{{ endereco['pais'] }}" required>
-
-            <button type="submit">{{ action }} Endereço</button>
+            <button type="submit">{{ action }} Evento</button>
         </form>
     </div>
 

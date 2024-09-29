@@ -3,63 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Funcionarios</title>
+    <title>Lista de Pontos</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         body {
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* Alinha o conteúdo ao topo */
+            align-items: flex-start;
             min-height: 100vh;
             margin: 0;
             background-color: #f4f4f4;
         }
         .menu-container {
-            position: absolute; /* Permite que o botão fique fixo na tela */
-            top: 10px; /* Distância do topo */
-            left: 10px; /* Distância da esquerda */
+            position: absolute;
+            top: 10px;
+            left: 10px;
         }
         .container {
-            width: 80%; /* Limita a largura a 70% */
-            max-width: 800px; /* Largura máxima do formulário */
-            height: auto; /* Ajusta a altura automaticamente */
+            width: 70%;
+            max-width: 600px;
             background: white;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin-top: 70px; /* Espaço do botão de menu */
-            overflow-x: auto;
+            margin-top: 70px;
         }
         table {
-            width: 100%; /* A tabela ocupa toda a largura do container */
-            border-collapse: separate; /* Altera para bordas separadas para permitir o espaçamento */
-            border-spacing: 15px; /* Espaçamento entre as colunas */
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
         }
-         th, td {
-            /* border: 1px solid #ddd;  */
-            padding: 12px;  
-            text-align: left; 
-            font-size: 14px; 
+        table, th, td {
+            /* border: 1px solid #ccc; */
+            border: 0px solid white;
         }
-
-        h1, h2 {
-            text-align: center;
+        th, td {
+            padding: 10px;
+            text-align: left;
         }
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px; /* Espaçamento entre os campos */
-        }
-        label {
-            margin-bottom: 5px;
-        }
-        input {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+        th {
+            background-color: #007bff;
+            color: white;
         }
         button {
-            padding: 10px;
+            padding: 5px 10px;
+            margin-right: 5px;
             background-color: #007bff;
             color: white;
             border: none;
@@ -69,10 +57,13 @@
         button:hover {
             background-color: #0056b3;
         }
-        /* .action-buttons{
-            padding-left: 120px;
-        }   */
-        
+        .action-buttons {
+            display: flex;
+            align-items: center;
+            display: inline-block;
+            /* width: 92%; */
+            border: 0px solid white;
+        }
     </style>
 </head>
 <body>
@@ -106,41 +97,46 @@
     </div>
 
     <div class="container">
-        <h2>Lista de Funcionarios</h2>
+        <h2>Lista de Pontos</h2>
         <table>
             <thead>
                 <tr>
-                    <th>Matricula</th>
-                    <th>Nome</th>
-                    <th>Função</th>
+                    <th>ID</th>
+                    <th>Funcionario</th>
+                    <th>Data</th>
+                    <th>Hora Entrada</th>
+                    <th>Hora Saída</th>
+                    <th>Evento</th>
                     <th>Ações</th>
                 </tr>
             </thead>
-            {% if funcionarios %}
+            {% if pontos %}
             <tbody>
-                {% for funcionario in funcionarios %}
+                {% for ponto in pontos %}
                 <tr>
-                    <td>{{ funcionario[0] }}</td>
-                    <td>{{ funcionario[1] }}</td>
-                    <td>{{ funcionario[2] }}</td>
-                    
+                    <td>{{ ponto[0] }}</td>
+                    <td>{{ ponto[1] }}</td>
+                    <td>{{ ponto[2] }}</td>
+                    <td>{{ ponto[3] }}</td>
+                    <td>{{ ponto[4] }}</td>
+                    <td>{{ ponto[5] }}</td>
                     <td class="action-buttons">
-                        <a href="{{ url_for('update_funcionario', matricula=funcionario[0]) }}"><button>Editar</button></a>
-                        <form method="POST" action="{{ url_for('delete_funcionario', matricula=funcionario[0]) }}" style="display:inline;">
-                            <button type="submit" onclick="return confirm('Tem certeza que deseja remover este funcionario?')">Remover</button>
+                        <a href="{{ url_for('edit_ponto', id=ponto[0]) }}"><button>Editar</button></a>
+                        <form method="POST" action="{{ url_for('delete_ponto', id=ponto[0]) }}" style="display:inline;">
+                            <button type="submit" onclick="return confirm('Tem certeza que deseja remover este ponto?')">Remover</button>
                         </form>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
             {% else %}
-                <p>Nenhum funcionario encontrado.</p>
+                <p>Nenhum ponto encontrado.</p>
             {% endif %}
         </table>
-        <a href="{{ url_for('add_funcionario') }}"><button>Adicionar Novo Funcionario</button></a>
+        <a href="{{ url_for('add_ponto') }}"><button>Adicionar Novo Ponto</button></a>
     </div>
 
-    <script src="../static/script.js"></script>
-        
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    
 </body>
 </html>
