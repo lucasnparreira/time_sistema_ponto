@@ -43,13 +43,13 @@
         <h3>Gerenciar Funcionário</h3>
         <form id="funcionario-form">
             <label for="matricula">Matrícula:</label>
-            <input type="number" id="matricula" name="matricula" required>
+            <input type="number" id="matricula" name="matricula" placeholder="Informe a matricula do colaborador" required>
 
             <label for="nome">Nome:</label>
-            <input type="text" id="nome" name="nome" required>
+            <input type="text" id="nome" name="nome" placeholder="Informe o nome do colaborador" required>
 
             <label for="funcao">Função:</label>
-            <input type="text" id="funcao" name="funcao" required>
+            <input type="text" id="funcao" name="funcao" placeholder="Informe a função" required>
 
             <label for="data_inicio">Data de Início:</label>
             <input type="date" id="data_inicio" name="data_inicio" required>
@@ -58,22 +58,23 @@
             <input type="date" id="data_termino" name="data_termino">
 
             <label for="departamento">Departamento:</label>
-            <input type="text" id="departamento" name="departamento" required>
+            <input type="text" id="departamento" name="departamento" placeholder="Informe qual o departamento" required>
 
             <label for="gerente">Gerente:</label>
-            <input type="text" id="gerente" name="gerente">
+            <input type="text" id="gerente" name="gerente" placeholder="Informe qual o nome do gerente">
 
             <label for="endereco">Endereço:</label>
-            <input type="text" id="endereco" name="endereco">
+            <input type="text" id="endereco" name="endereco" placeholder="Selecione / cadastre o endereço" autocomplete="off">
+            <ul id="enderecos-list" style="display: none;"></ul>
 
             <label for="telefone">Telefone:</label>
-            <input type="text" id="telefone" name="telefone" required>
+            <input type="text" id="telefone" name="telefone" placeholder="Informe o telefone (xx) 9xxxx-xxxx" required>
 
             <label for="cpf">CPF:</label>
-            <input type="text" id="cpf" name="cpf" required>
+            <input type="text" id="cpf" name="cpf" placeholder="CPF - inserir apenas os numeros" required>
 
             <label for="rg">RG:</label>
-            <input type="text" id="rg" name="rg" required>
+            <input type="text" id="rg" name="rg" placeholder="Informe o numero da RG" required>
 
             <label for="banco">Banco:</label>
             <input type="text" id="banco" name="banco" required>

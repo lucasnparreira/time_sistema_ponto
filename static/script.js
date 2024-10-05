@@ -62,3 +62,37 @@ menuRelatorio.querySelectorAll('a').forEach(link => {
         menuRelatorio.style.display = 'none'; // Fecha o menu de relatório ao clicar em um link
     });
 });
+
+document.getElementById('endereco').addEventListener('focus', function() {
+    // Limpa a lista antes de buscar os endereços
+    const enderecosList = document.getElementById('enderecos-list');
+    enderecosList.innerHTML = '';
+
+    fetch('/enderecos')
+        .then(response => response.json())
+        .then(enderecos => {
+            enderecos.forEach(endereco => {
+                const li = document.createElement('li');
+                li.textContent = endereco.rua;
+                li.dataset.id = endereco.id;  // Armazena o ID do endereço
+                li.addEventListener('click', function() {
+                    document.getElementById('endereco').value = endereco.rua;  // Preenche o campo de entrada
+                    enderecosList.style.display = 'none';  // Oculta a lista
+                });
+                enderecosList.appendChild(li);
+            });
+
+            if (enderecos.length > 0) {
+                enderecosList.style.display = 'block';  // Mostra a lista se houver endereços
+            }
+        })
+        .catch(error => console.error('Erro ao buscar endereços:', error));
+});
+
+// Fecha a lista ao clicar fora dela
+document.addEventListener('click', function(event) {
+    const enderecosList = document.getElementById('enderecos-list');
+    if (!enderecosList.contains(event.target) && event.target.id !== 'endereco') {
+        enderecosList.style.display = 'none';
+    }
+});

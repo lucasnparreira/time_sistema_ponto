@@ -1,6 +1,6 @@
 /* Geral */
 body {
-    background-color: lightblue;
+    background-color: rgb(127, 137, 247);
     font-family: Arial, sans-serif;
     margin: 0;
     display: flex;
@@ -91,7 +91,7 @@ button:hover {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 90vh;
+    height: 70vh;
     margin: 0;
 }
 
@@ -142,4 +142,26 @@ button:hover {
     position: absolute;
     top: 10px;
     left: 10px;
+}
+
+#enderecos-list {
+    position: absolute; /* Para que a lista apareça abaixo do campo de entrada */
+    background: white; /* Cor de fundo */
+    border: 1px solid #ccc; /* Borda */
+    max-height: 150px; /* Altura máxima */
+    overflow-y: auto; /* Rolagem vertical se a lista for longa */
+    z-index: 1000; /* Para garantir que a lista fique acima de outros elementos */
+}
+
+#enderecos-list li {
+    padding: 10px; /* Espaçamento interno */
+    cursor: pointer; /* Indica que é clicável */
+}
+
+#enderecos-list li:hover {
+    background-color: #f0f0f0; /* Cor ao passar o mouse */
+}
+
+th, td, button {
+    font-size: x-small;
 }

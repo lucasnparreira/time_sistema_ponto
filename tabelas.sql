@@ -54,12 +54,11 @@ CREATE TABLE IF NOT EXISTS FUNCIONARIO (
     data_termino TEXT, -- Permitir NULL
     departamento TEXT NOT NULL,
     gerente TEXT,
-    endereco INTEGER, -- Permitir NULL se nem todos tiverem
+    endereco TEXT NOT NULL, 
     telefone TEXT NOT NULL, -- Trocar para TEXT para suportar símbolos
     cpf TEXT NOT NULL,
     rg TEXT NOT NULL,
     banco TEXT NOT NULL,
     agencia TEXT NOT NULL,
-    conta_corrente TEXT NOT NULL,
-    FOREIGN KEY (endereco) REFERENCES endereco(id)
+    conta_corrente TEXT NOT NULL
 );

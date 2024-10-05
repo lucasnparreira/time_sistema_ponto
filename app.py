@@ -234,7 +234,7 @@ def view_endereco(id):
         return render_template('endereco.html', action='Atualizar', endereco=endereco)
     return redirect(url_for('list_enderecos'))
 
-@app.route('/enderecos')
+@app.route('/enderecos', methods=['GET'])
 def list_enderecos():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -502,7 +502,7 @@ def list_eventos():
     eventos = cursor.fetchall()
     conn.close()
     
-    return render_template('lista_eventos.html', evento=eventos)
+    return render_template('lista_eventos.html', eventos=eventos)
 
 
 # hora TEXT NOT NULL,
@@ -597,7 +597,7 @@ def view_ponto(id):
 def list_pontos():
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM PONTO')
+    cursor.execute('SELECT p.id, f.nome, p.data, p.hora_entrada, p.hora_saida, e.descricao FROM PONTO p JOIN EVENTO e ON p.evento = e.codigo JOIN FUNCIONARIO f ON p.funcionario = f.matricula')
     pontos = cursor.fetchall()
     conn.close()
     
