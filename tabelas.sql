@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS USUARIO (
     id INTEGER PRIMARY KEY,
     nome TEXT NOT NULL,
     senha TEXT NOT NULL, -- Idealmente armazenar um hash da senha
-    data TEXT NOT NULL -- Considerar renomear para `data_criacao` ou `data_registro`
+    data date CURRENT_DATE -- Considerar renomear para `data_criacao` ou `data_registro`
 );
 
 CREATE TABLE IF NOT EXISTS EVENTO (

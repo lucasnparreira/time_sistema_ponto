@@ -4,35 +4,47 @@
         <i class="fa fa-caret-down"></i>
         ☰ Menu
     </button>
+    <div style="color: black;">
+    {% if session['user_nome'] %}
+            <p>Bem vindo, {{ session['user_nome'] }}!</p>
+        {% else %}
+            <p>Por favor, faça o login.</p>
+        {% endif %}
+    </div>
     <div id="mySidenav" class="sidenav">
         <ul>
             <ol><a href="/">Home</a></ol>
-            <ol><a href="/">Cadastro</a></ol>
-            <ul>
-                <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-                <ol><a href="/funcionario" onclick="closeNav()">Funcionário</a></ol>
-                <!-- <li><a href="/endereco/novo">Endereço</a></li> -->
-                <ol><a href="/ponto/cadastro" onclick="closeNav()">Ponto</a></ol>
-                <ol><a href="/departamento/novo" onclick="closeNav()">Departamento</a></ol>
-                <ol><a href="/funcao/novo" onclick="closeNav()">Função</a></ol>
-                <ol><a href="/evento/novo" onclick="closeNav()">Evento</a></ol>
-                <ol><a href="/usuario" onclick="closeNav()">Usuário</a></ol>
-            </ul>
-        </ul>
+            {% if not session['user_nome'] %}
+                <ol><a href="/login" onclick="closeNav()">Login</a></ol>
+            {% else %}
+                <ol><a href="/">Cadastro</a></ol>
+                <ul>
+                    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+                    <ol><a href="/funcionario" onclick="closeNav()">Funcionário</a></ol>
+                    <!-- <li><a href="/endereco/novo">Endereço</a></li> -->
+                    <ol><a href="/ponto/cadastro" onclick="closeNav()">Ponto</a></ol>
+                    <ol><a href="/departamento/novo" onclick="closeNav()">Departamento</a></ol>
+                    <ol><a href="/funcao/novo" onclick="closeNav()">Função</a></ol>
+                    <ol><a href="/evento/novo" onclick="closeNav()">Evento</a></ol>
+                    <ol><a href="/usuario" onclick="closeNav()">Usuário</a></ol>
+                </ul>
+                </ul>
 
-        <ul>
-            <ol><a href="/">Relatório</a></ol>
-            <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-            <ul>
-                <!-- <ol><a href="/" onclick="closeNav()">Home</a></ol> -->
-                <ol><a href="/funcionarios" onclick="closeNav()">Funcionário</a></ol>
-                <!-- <li><a href="/endereco/novo">Endereço</a></li> -->
-                <ol><a href="/pontos" onclick="closeNav()">Ponto</a></ol>
-                <ol><a href="/departamentos" onclick="closeNav()">Departamento</a></ol>
-                <ol><a href="/funcoes" onclick="closeNav()">Função</a></ol>
-                <ol><a href="/eventos" onclick="closeNav()">Evento</a></ol>
-                <ol><a href="/usuarios" onclick="closeNav()">Usuário</a></ol>
-            </ul>
-        </ul>
+                <ul>
+                    <ol><a href="/">Relatório</a></ol>
+                    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+                    <ul>
+                        <!-- <ol><a href="/" onclick="closeNav()">Home</a></ol> -->
+                        <ol><a href="/funcionarios" onclick="closeNav()">Funcionário</a></ol>
+                        <!-- <li><a href="/endereco/novo">Endereço</a></li> -->
+                        <ol><a href="/pontos" onclick="closeNav()">Ponto</a></ol>
+                        <ol><a href="/departamentos" onclick="closeNav()">Departamento</a></ol>
+                        <ol><a href="/funcoes" onclick="closeNav()">Função</a></ol>
+                        <ol><a href="/eventos" onclick="closeNav()">Evento</a></ol>
+                        <ol><a href="/usuarios" onclick="closeNav()">Usuário</a></ol>
+                    </ul>
+                </ul>
+            {% endif %}
+            
     </div>
 </div>

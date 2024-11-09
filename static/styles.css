@@ -323,3 +323,9 @@ table {
 th, td, button {
     font-size: x-small;
 }
+
+.error-message {
+    color: red;
+    font-size: 14px;
+    margin-top: 10px;
+}

@@ -1,18 +1,33 @@
-from flask import Flask, redirect, request, jsonify, render_template, url_for
+from flask import Flask, redirect, request, jsonify, render_template, url_for, session, flash
+from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
 import sqlite3
+import os
 
 app = Flask(__name__)
+
+app.config['SECRET_KEY'] = os.urandom(24)
 
 def get_db_connection():
     conn = sqlite3.connect('app.db')
     conn.row_factory = sqlite3.Row
     return conn 
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
+
 @app.route('/funcionario', methods=['POST', 'GET'])
+@login_required
 def add_funcionario():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -58,6 +73,7 @@ def add_funcionario():
 
 
 @app.route('/funcionario/<int:matricula>', methods=['DELETE'])
+@login_required
 def delete_funcionario(matricula):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -78,7 +94,9 @@ def delete_funcionario(matricula):
   
     return jsonify({'message': 'Funcionário deletado com sucesso'}), 200
 
+
 @app.route('/funcionario/<int:matricula>', methods=['PUT'])
+@login_required
 def update_funcionario(matricula):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -117,7 +135,9 @@ def update_funcionario(matricula):
 
     return jsonify({'message': 'Funcionário atualizado com sucesso'}), 200
 
+
 @app.route('/funcionario/<int:matricula>', methods=['GET'])
+@login_required
 def get_funcionario(matricula):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -153,7 +173,9 @@ def get_funcionario(matricula):
     conn.close()
     return jsonify(funcionario_data), 200
 
+
 @app.route('/funcionarios')
+@login_required
 def list_funcionarios():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -163,7 +185,9 @@ def list_funcionarios():
     
     return render_template('lista_funcionarios.html', funcionarios=funcionarios)
 
+
 @app.route('/endereco/novo', methods=['GET','POST'])
+@login_required
 def add_endereco():
     if request.method == 'POST':
         conn = get_db_connection()
@@ -185,7 +209,9 @@ def add_endereco():
     
     return render_template('endereco.html', action='Cadastrar', endereco={})
 
+
 @app.route('/endereco/<int:id>', methods=['POST'])
+@login_required
 def edit_endereco(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -208,7 +234,9 @@ def edit_endereco(id):
 
     return redirect(url_for('list_enderecos'))
 
+
 @app.route('/endereco/<int:id>', methods=['POST'])
+@login_required
 def delete_endereco(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -226,6 +254,7 @@ def delete_endereco(id):
 
 
 @app.route('/endereco/<int:id>', methods=['GET'])
+@login_required
 def view_endereco(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -237,7 +266,9 @@ def view_endereco(id):
         return render_template('endereco.html', action='Atualizar', endereco=endereco)
     return redirect(url_for('list_enderecos'))
 
+
 @app.route('/enderecos', methods=['GET'])
+@login_required
 def list_enderecos():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -249,6 +280,7 @@ def list_enderecos():
 
 
 @app.route('/departamento/novo', methods=['GET','POST'])
+@login_required
 def add_departamento():
     if request.method == 'POST':
         conn = get_db_connection()
@@ -267,7 +299,9 @@ def add_departamento():
     
     return render_template('departamento.html', action='Cadastrar', departamento={})
 
+
 @app.route('/departamento/<int:id>', methods=['POST'])
+@login_required
 def edit_departamento(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -288,7 +322,9 @@ def edit_departamento(id):
 
     return redirect(url_for('list_departamentos'))
 
+
 @app.route('/departamento/<int:id>/delete', methods=['POST'])
+@login_required
 def delete_departamento(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -312,6 +348,7 @@ def delete_departamento(id):
 
 
 @app.route('/departamento/<int:id>', methods=['GET'])
+@login_required
 def view_departamento(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -323,7 +360,9 @@ def view_departamento(id):
         return render_template('departamento.html', action='Atualizar', departamento=departamento)
     return redirect(url_for('list_departamentos'))
 
+
 @app.route('/departamentos')
+@login_required
 def list_departamentos():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -335,6 +374,7 @@ def list_departamentos():
 
 
 @app.route('/funcao/novo', methods=['GET','POST'])
+@login_required
 def add_funcao():
     if request.method == 'POST':
         conn = get_db_connection()
@@ -354,6 +394,7 @@ def add_funcao():
     return render_template('funcao.html', action='Cadastrar', funcao={})
 
 @app.route('/funcao/<int:id>', methods=['POST'])
+@login_required
 def edit_funcao(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -374,7 +415,9 @@ def edit_funcao(id):
 
     return redirect(url_for('list_funcoes'))
 
+
 @app.route('/funcao/<int:id>/delete', methods=['POST'])
+@login_required
 def delete_funcao(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -398,6 +441,7 @@ def delete_funcao(id):
 
 
 @app.route('/funcao/<int:id>', methods=['GET'])
+@login_required
 def view_funcao(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -409,7 +453,9 @@ def view_funcao(id):
         return render_template('funcao.html', action='Atualizar', funcao=funcao)
     return redirect(url_for('list_funcoes'))
 
+
 @app.route('/funcoes')
+@login_required
 def list_funcoes():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -421,6 +467,7 @@ def list_funcoes():
 
 
 @app.route('/evento/novo', methods=['GET','POST'])
+@login_required
 def add_evento():
     if request.method == 'POST':
         conn = get_db_connection()
@@ -440,7 +487,9 @@ def add_evento():
     
     return render_template('evento.html', action='Cadastrar', evento={})
 
+
 @app.route('/evento/<int:id>', methods=['POST'])
+@login_required
 def edit_evento(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -462,7 +511,9 @@ def edit_evento(id):
 
     return redirect(url_for('list_eventos'))
 
+
 @app.route('/evento/<int:id>/delete', methods=['POST'])
+@login_required
 def delete_evento(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -486,6 +537,7 @@ def delete_evento(id):
 
 
 @app.route('/evento/<int:id>', methods=['GET'])
+@login_required
 def view_evento(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -497,7 +549,9 @@ def view_evento(id):
         return render_template('evento.html', action='Atualizar', evento=evento)
     return redirect(url_for('list_eventos'))
 
+
 @app.route('/eventos')
+@login_required
 def list_eventos():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -508,12 +562,9 @@ def list_eventos():
     return render_template('lista_eventos.html', eventos=eventos)
 
 
-# hora TEXT NOT NULL,
-#     data TEXT NOT NULL,
-#     funcionario INTEGER, -- Definir o tipo da coluna
-#     evento INTEGER,
 
 @app.route('/ponto/cadastro', methods=['GET','POST'])
+@login_required
 def add_ponto():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -542,7 +593,9 @@ def add_ponto():
 
     return render_template('ponto.html', action='Cadastrar', ponto={}, eventos=eventos)
 
+
 @app.route('/ponto/<int:id>', methods=['POST'])
+@login_required
 def edit_ponto(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -567,7 +620,9 @@ def edit_ponto(id):
 
     return redirect(url_for('list_pontos'))
 
+
 @app.route('/ponto/<int:id>/delete', methods=['POST'])
+@login_required
 def delete_ponto(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -591,6 +646,7 @@ def delete_ponto(id):
 
 
 @app.route('/ponto/<int:id>', methods=['GET'])
+@login_required
 def view_ponto(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -602,7 +658,9 @@ def view_ponto(id):
         return render_template('ponto.html', action='Atualizar', ponto=ponto)
     return redirect(url_for('list_pontos'))
 
+
 @app.route('/pontos')
+@login_required
 def list_pontos():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -611,6 +669,131 @@ def list_pontos():
     conn.close()
     
     return render_template('lista_pontos.html', pontos=pontos)
+
+
+@app.route('/usuario', methods=['GET','POST'])
+@login_required
+def add_usuario():
+    if request.method == 'POST':
+        nome = request.form.get('nome')
+        senha = request.form.get('senha')
+
+        if not nome or not senha:
+            flash("Nome e senha são obrigatórios", "danger")
+            return redirect(url_for('add_usuario')) 
+
+        if senha is None or senha.strip() == '':
+            flash("Senha não pode ser vazia", "danger")
+            return redirect(url_for('add_usuario'))  
+
+        try:
+            hashed_password = generate_password_hash(senha)
+        except Exception as e:
+            flash(f"Erro ao criptografar a senha: {e}", "danger")
+            return redirect(url_for('add_usuario'))
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute('''
+                INSERT INTO usuario (nome, senha) VALUES (?, ?)
+            ''', (nome, hashed_password))
+
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            flash(f"Erro ao cadastrar o usuário: {e}", "danger")
+        finally:
+            cursor.close()
+            conn.close()
+
+        flash("Usuário cadastrado com sucesso!", "success")
+        return redirect(url_for('listar_usuarios')) 
+    return render_template('add_usuario.html')
+
+
+@app.route('/usuario/<int:id>', methods=['GET','POST'])
+@login_required
+def edit_usuario(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    if request.method == 'POST':
+        nome = request.form['nome']
+        senha = request.form['senha']
+
+        hashed_password = generate_password_hash(senha)
+
+        cursor.execute('''
+                        update usuario
+                       set nome = ?, senha = ?
+                       where id = ?
+                       ''', (nome, hashed_password, id))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return redirect(url_for('listar_usuarios'))
+    
+    cursor.execute('select * from usuario where id = ?', (id,))
+    usuario = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return render_template('usuario_form.html',action='Atualizar', usuario=usuario)
+
+
+@app.route('/usuario/delete/<int:id>', methods=['POST'])
+@login_required
+def delete_usuario(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('delete from usuario where id = ?', (id,))
+
+    cursor.close()
+    conn.close()
+
+    return redirect(url_for('listar_usuarios'))
+
+
+@app.route('/usuarios')
+@login_required
+def listar_usuarios():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM usuario')
+    usuarios = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return render_template('listar_usuarios.html', usuarios=usuarios)
+
+@app.route('/login', methods=['GET','POST'])
+def login():
+    if request.method == 'POST':
+        nome = request.form['nome']
+        senha = request.form['senha']
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute('select * from usuario where nome = ?', (nome,))
+        usuario = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if usuario and check_password_hash(usuario['senha'], senha):
+            session['user_id'] = usuario['id']
+            session['user_nome'] = usuario['nome']
+            return redirect(url_for('index'))
+        else:
+            flash('Usuario ou senha incorretos!', 'danger')
+
+    return render_template('login.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
