@@ -1,4 +1,136 @@
 /* Geral */
+.navbar {
+    background-color: #333;
+    overflow: hidden;
+    position: relative;
+}
+
+.navbar {
+    font-size: 16px;
+    color: white;
+    padding: 14px 16px;
+    background-color: inherit;
+    border: none;
+    cursor: pointer;
+}
+
+.navbar {
+    /* overflow: hidden; */
+    /* background-color: #333; */
+    display: flex;
+    align-items: center;
+}
+
+.navbar a {
+    float: left;
+    font-size: 16px;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+.sidenav {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #333;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+    opacity: 80%;
+}
+
+.sidenav a {
+    padding: 8px 8px 8px 32px;
+    text-decoration: none;
+    font-size: 30px;
+    width: 350px;
+    color: white;
+    display: block;
+    transition: 0.3s;
+}
+
+.sidenav a:hover {
+    background-color: #575757;
+}
+
+.sidenav .closebtn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+    color: white;
+}
+
+.dropdown {
+    float: left;
+    overflow: hidden;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+.dropdown {
+    font-size: 16px;
+    border: none;
+    outline: none;
+    color: white;
+    padding: 14px 16px;
+    background-color: inherit;
+    font-family: inherit;
+    margin: 0;
+    cursor: pointer;
+}
+
+.navbar a:hover,
+.dropdown:hover .dropbtn {
+    background-color: #ddd;
+    color: black;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.dropdown-content a {
+    float: none;
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+}
+
+.dropdown-content a:hover {
+    background-color: #ddd;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropbtn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+    
+}
+
 body {
     background-color: rgb(127, 137, 247);
     font-family: Arial, sans-serif;
@@ -59,7 +191,7 @@ input {
 
 /* Botões */
 button {
-    margin-top: 10px;
+    /* margin-top: -80px; */
     padding: 10px 20px;
     background-color: #007bff;
     color: white;
@@ -79,10 +211,36 @@ button:hover {
     max-width: 400px;
     height: auto;
     background: white;
+    margin-top: 60px;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     /* margin-top: 50px; */
+}
+
+.container-relatorios {
+    width: 80%; /* Limita a largura a 70% */
+    max-width: 800px; /* Largura máxima do formulário */
+    height: auto; /* Ajusta a altura automaticamente */
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 70px; /* Espaço do botão de menu */
+    overflow-x: auto;
+}
+
+
+table {
+    width: 100%; /* A tabela ocupa toda a largura do container */
+    border-collapse: separate; /* Altera para bordas separadas para permitir o espaçamento */
+    border-spacing: 15px; /* Espaçamento entre as colunas */
+}
+ th, td {
+    /* border: 1px solid #ddd;  */
+    padding: 12px;  
+    text-align: left; 
+    font-size: 14px; 
 }
 
 /* Tela inicial */
@@ -96,17 +254,17 @@ button:hover {
 }
 
 /* Menus */
-.menu-container {
+/* .menu-container {
     display: flex;
     gap: 10px;
     margin-bottom: 0;
     position: relative;
     top: 10px;
     left: 10px;
-}
+} */
 
 /* Menu Cadastro e Relatório */
-#menu, #menu-relatorio {
+/* #menu, #menu-relatorio {
     position: absolute;
     top: 40px;
     background: white;
@@ -131,11 +289,11 @@ button:hover {
     cursor: pointer;
     font-size: 16px;
     transition: background-color 0.3s;
-}
+} */
 
-#menu-button-cadastro:hover, #menu-button-relatorio:hover {
+/* #menu-button-cadastro:hover, #menu-button-relatorio:hover {
     background-color: #0056b3;
-}
+} */
 
 /* Departamento */
 .menu-container {

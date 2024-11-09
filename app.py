@@ -512,9 +512,13 @@ def list_eventos():
 
 @app.route('/ponto/cadastro', methods=['GET','POST'])
 def add_ponto():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('select codigo, descricao from evento')
+    eventos = cursor.fetchall()
+    
     if request.method == 'POST':
-        conn = get_db_connection()
-        cursor = conn.cursor()
         #data = request.get_json()
         hora_entrada = request.form.get('hora_entrada')
         hora_saida = request.form.get('hora_saida')
@@ -531,7 +535,9 @@ def add_ponto():
 
         return redirect(url_for('list_pontos'))
     
-    return render_template('ponto.html', action='Cadastrar', ponto={})
+    conn.close()
+
+    return render_template('ponto.html', action='Cadastrar', ponto={}, eventos=eventos)
 
 @app.route('/ponto/<int:id>', methods=['POST'])
 def edit_ponto(id):

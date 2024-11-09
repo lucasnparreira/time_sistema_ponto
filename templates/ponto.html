@@ -6,87 +6,12 @@
     <title>Ponto</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start; /* Alinha o conteúdo ao topo */
-            min-height: 100vh;
-            margin: 0;
-            background-color: #f4f4f4;
-        }
-        .menu-container {
-            position: absolute; /* Permite que o botão fique fixo na tela */
-            top: 10px; /* Distância do topo */
-            left: 10px; /* Distância da esquerda */
-        }
-        .container {
-            width: 70%; /* Limita a largura a 70% */
-            max-width: 400px; /* Largura máxima do formulário */
-            height: auto; /* Ajusta a altura automaticamente */
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin-top: 70px; /* Espaço do botão de menu */
-        }
-        h1, h2 {
-            text-align: center;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px; /* Espaçamento entre os campos */
-        }
-        label {
-            margin-bottom: 5px;
-        }
-        input {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
+       
     </style>
 </head>
 <body>
-    <div class="menu-container">
-        <button id="menu-button-cadastro">Cadastro</button>
-        <nav id="menu" style="display: none;">
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/funcionario">Funcionário</a></li>
-                <li><a href="/endereco/novo">Endereço</a></li>
-                <li><a href="/ponto/cadastro">Ponto</a></li>
-                <li><a href="/departamento/novo">Departamento</a></li>
-                <li><a href="/funcao/novo">Função</a></li>
-                <li><a href="/evento/novo">Evento</a></li>
-                <li><a href="/usuario">Usuário</a></li>
-            </ul>
-        </nav>
-        <button id="menu-button-relatorio">Relatório</button>
-        <nav id="menu-relatorio" style="display: none;">
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/funcionarios">Funcionário</a></li>
-                <li><a href="/enderecos">Endereço</a></li>
-                <li><a href="/ponto">Ponto</a></li>
-                <li><a href="/departamentos">Departamento</a></li>
-                <li><a href="/funcoes">Função</a></li>
-                <li><a href="/eventos">Evento</a></li>
-                <li><a href="/usuarios">Bunga</a></li>
-            </ul>
-        </nav>
-    </div>
+    {% include 'menu.html' %}
+   
 
     <div class="container">
         <h3>{{ action }} Ponto</h3>
@@ -109,7 +34,12 @@
             <input type="time" id="hora_saida" name="hora_saida" value="{{ ponto['hora_saida'] }}" placeholder="Informe a hora de saída da marcação" required>
 
             <label for="evento">Evento:</label>
-            <input type="text" id="evento" name="evento" value="{{ ponto['evento'] }}" placeholder="Informe o numero do evento" required>
+            <select id="evento" name="evento" required>
+                <option value="">Selecione um evento</option>
+                {% for evento in eventos %}
+                    <option value="{{ evento['codigo'] }}">{{ evento['descricao'] }}</option>
+                {% endfor %}
+            </select>
 
             <button type="submit">{{ action }} Ponto</button>
         </form>

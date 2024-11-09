@@ -10,34 +10,8 @@
     </style>
 </head>
 <body>
-    <div class="menu-container">
-        <button id="menu-button-cadastro">Cadastro</button>
-        <nav id="menu" style="display: none;">
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/funcionario">Funcionário</a></li>
-                <li><a href="/endereco/novo">Endereço</a></li>
-                <li><a href="/ponto/cadastro">Ponto</a></li>
-                <li><a href="/departamento/novo">Departamento</a></li>
-                <li><a href="/funcao/novo">Função</a></li>
-                <li><a href="/evento/novo">Evento</a></li>
-                <li><a href="/usuario">Usuário</a></li>
-            </ul>
-        </nav>
-        <button id="menu-button-relatorio">Relatório</button>
-        <nav id="menu-relatorio" style="display: none;">
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/funcionarios">Funcionário</a></li>
-                <li><a href="/enderecos">Endereço</a></li>
-                <li><a href="/ponto">Ponto</a></li>
-                <li><a href="/departamentos">Departamento</a></li>
-                <li><a href="/funcoes">Função</a></li>
-                <li><a href="/eventos">Evento</a></li>
-                <li><a href="/usuarios">Bunga</a></li>
-            </ul>
-        </nav>
-    </div>
+    {% include 'menu.html' %}
+   
 
     <div class="container">
         <h3>{{ action }} Departamento</h3>

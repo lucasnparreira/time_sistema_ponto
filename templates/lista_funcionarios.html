@@ -5,107 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Funcionarios</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start; /* Alinha o conteúdo ao topo */
-            min-height: 100vh;
-            margin: 0;
-            background-color: #f4f4f4;
-        }
-        .menu-container {
-            position: absolute; /* Permite que o botão fique fixo na tela */
-            top: 10px; /* Distância do topo */
-            left: 10px; /* Distância da esquerda */
-        }
-        .container {
-            width: 80%; /* Limita a largura a 70% */
-            max-width: 800px; /* Largura máxima do formulário */
-            height: auto; /* Ajusta a altura automaticamente */
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin-top: 70px; /* Espaço do botão de menu */
-            overflow-x: auto;
-        }
-        table {
-            width: 100%; /* A tabela ocupa toda a largura do container */
-            border-collapse: separate; /* Altera para bordas separadas para permitir o espaçamento */
-            border-spacing: 15px; /* Espaçamento entre as colunas */
-        }
-         th, td {
-            /* border: 1px solid #ddd;  */
-            padding: 12px;  
-            text-align: left; 
-            font-size: 14px; 
-        }
 
-        h1, h2 {
-            text-align: center;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px; /* Espaçamento entre os campos */
-        }
-        label {
-            margin-bottom: 5px;
-        }
-        input {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        /* .action-buttons{
-            padding-left: 120px;
-        }   */
-        
-    </style>
 </head>
 <body>
-    <div class="menu-container">
-        <button id="menu-button-cadastro">Cadastro</button>
-        <nav id="menu" style="display: none;">
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/funcionario">Funcionário</a></li>
-                <li><a href="/endereco/novo">Endereço</a></li>
-                <li><a href="/ponto/cadastro">Ponto</a></li>
-                <li><a href="/departamento/novo">Departamento</a></li>
-                <li><a href="/funcao/novo">Função</a></li>
-                <li><a href="/evento/novo">Evento</a></li>
-                <li><a href="/usuario">Usuário</a></li>
-            </ul>
-        </nav>
-        <button id="menu-button-relatorio">Relatório</button>
-        <nav id="menu-relatorio" style="display: none;">
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/funcionarios">Funcionário</a></li>
-                <li><a href="/enderecos">Endereço</a></li>
-                <li><a href="/ponto">Ponto</a></li>
-                <li><a href="/departamentos">Departamento</a></li>
-                <li><a href="/funcoes">Função</a></li>
-                <li><a href="/eventos">Evento</a></li>
-                <li><a href="/usuarios">Bunga</a></li>
-            </ul>
-        </nav>
-    </div>
+    {% include 'menu.html' %}
+   
 
-    <div class="container">
+    <div class="container-relatorios">
         <h2>Lista de Funcionarios</h2>
         <table>
             <thead>
