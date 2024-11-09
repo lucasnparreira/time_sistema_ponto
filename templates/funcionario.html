@@ -14,52 +14,58 @@
    
 
     <div class="container">
+        <form method="POST" action="/funcionario">
+            <label for="search"> Buscar Funcionario por matricula ou nome:</label>
+            <input type="text" id="search" name="search" placeholder="Informe a matricula ou nome">
+            <button type="submit">Buscar</button>
+        </form>
+
         <h3>Gerenciar Funcionário</h3>
         <form id="funcionario-form">
             <label for="matricula">Matrícula:</label>
-            <input type="number" id="matricula" name="matricula" placeholder="Informe a matricula do colaborador" required>
+            <input type="number" id="matricula" name="matricula" value="{{ funcionario[0] if funcionario else ''}}"placeholder="Informe a matricula do colaborador" required>
 
             <label for="nome">Nome:</label>
-            <input type="text" id="nome" name="nome" placeholder="Informe o nome do colaborador" required>
+            <input type="text" id="nome" name="nome" value="{{ funcionario[1] if funcionario else '' }}" placeholder="Informe o nome do colaborador" required>
 
             <label for="funcao">Função:</label>
-            <input type="text" id="funcao" name="funcao" placeholder="Informe a função" required>
+            <input type="text" id="funcao" name="funcao" value="{{ funcionario[2] if funcionario else '' }}" placeholder="Informe a função" required>
 
             <label for="data_inicio">Data de Início:</label>
-            <input type="date" id="data_inicio" name="data_inicio" required>
+            <input type="date" id="data_inicio" name="data_inicio" value="{{ funcionario[3] if funcionario else '' }}" required>
 
             <label for="data_termino">Data de Término:</label>
-            <input type="date" id="data_termino" name="data_termino">
+            <input type="date" id="data_termino" name="data_termino" value="{{ funcionario[4] if funcionario else '' }}">
 
             <label for="departamento">Departamento:</label>
-            <input type="text" id="departamento" name="departamento" placeholder="Informe qual o departamento" required>
+            <input type="text" id="departamento" name="departamento" value="{{ funcionario[5] if funcionario else '' }}" placeholder="Informe qual o departamento" required>
 
             <label for="gerente">Gerente:</label>
-            <input type="text" id="gerente" name="gerente" placeholder="Informe qual o nome do gerente">
+            <input type="text" id="gerente" name="gerente" value="{{ funcionario[6] if funcionario else '' }}" placeholder="Informe qual o nome do gerente">
 
             <label for="endereco">Endereço:</label>
-            <input type="text" id="endereco" name="endereco" placeholder="Selecione / cadastre o endereço" autocomplete="off">
+            <input type="text" id="endereco" name="endereco" value="{{ funcionario[7] if funcionario else '' }}" placeholder="Selecione / cadastre o endereço" autocomplete="off">
             <ul id="enderecos-list" style="display: none;"></ul>
 
             <label for="telefone">Telefone:</label>
-            <input type="text" id="telefone" name="telefone" placeholder="Informe o telefone (xx) 9xxxx-xxxx" required>
+            <input type="text" id="telefone" name="telefone" value="{{ funcionario[8] if funcionario else '' }}" placeholder="Informe o telefone (xx) 9xxxx-xxxx" required>
 
             <label for="cpf">CPF:</label>
-            <input type="text" id="cpf" name="cpf" placeholder="CPF - inserir apenas os numeros" required>
+            <input type="text" id="cpf" name="cpf" value="{{ funcionario[9] if funcionario else '' }}" placeholder="CPF - inserir apenas os numeros" required>
 
             <label for="rg">RG:</label>
-            <input type="text" id="rg" name="rg" placeholder="Informe o numero da RG" required>
+            <input type="text" id="rg" name="rg" value="{{ funcionario[10] if funcionario else '' }}" placeholder="Informe o numero da RG" required>
 
             <label for="banco">Banco:</label>
-            <input type="text" id="banco" name="banco" required>
+            <input type="text" id="banco" name="banco" value="{{ funcionario[11] if funcionario else '' }}" required>
 
             <label for="agencia">Agência:</label>
-            <input type="text" id="agencia" name="agencia" required>
+            <input type="text" id="agencia" name="agencia" value="{{ funcionario[12] if funcionario else '' }}" required>
 
             <label for="conta_corrente">Conta Corrente:</label>
-            <input type="text" id="conta_corrente" name="conta_corrente" required>
+            <input type="text" id="conta_corrente" name="conta_corrente" value="{{ funcionario[13] if funcionario else '' }}" required>
 
-            <button type="button" id="buscar-funcionario">Buscar Funcionário</button>
+            <!-- <button type="button" id="buscar-funcionario">Buscar Funcionário</button> -->
             <button type="submit" id="adicionar-funcionario">Adicionar Funcionário</button>
             <button type="button" id="atualizar-funcionario">Atualizar Funcionário</button>
         </form>
@@ -91,97 +97,88 @@
         });
     </script>
      -->
-    <script>
-        // Busca funcionário por matrícula e preenche o formulário
-        document.getElementById('buscar-funcionario').addEventListener('click', function() {
-            const matricula = document.getElementById('matricula').value;
+     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar se o botão de busca existe
+            const buscarButton = document.getElementById('buscar-funcionario');
+            if (buscarButton) {
+                buscarButton.addEventListener('click', function() {
+                    const matricula = document.getElementById('search').value;
+                    if (!matricula) {
+                        alert('Por favor, insira a matrícula ou nome.');
+                        return;
+                    }
 
-            if (!matricula) {
-                alert('Por favor, insira a matrícula.');
-                return;
+                    fetch(`/funcionario/${matricula}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.message) {
+                                alert(data.message);
+                            } else {
+                                document.getElementById('matricula').value = data.matricula;
+                                document.getElementById('nome').value = data.nome;
+                                document.getElementById('funcao').value = data.funcao;
+                                document.getElementById('data_inicio').value = data.data_inicio;
+                                document.getElementById('data_termino').value = data.data_termino || '';
+                                document.getElementById('departamento').value = data.departamento;
+                                document.getElementById('gerente').value = data.gerente;
+                                document.getElementById('endereco').value = data.endereco;
+                                document.getElementById('telefone').value = data.telefone;
+                                document.getElementById('cpf').value = data.cpf;
+                                document.getElementById('rg').value = data.rg;
+                                document.getElementById('banco').value = data.banco;
+                                document.getElementById('agencia').value = data.agencia;
+                                document.getElementById('conta_corrente').value = data.conta_corrente;
+                            }
+                        })
+                        .catch(error => console.error('Erro ao buscar funcionário:', error));
+                });
             }
 
-            fetch(`/funcionario/${matricula}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.message) {
-                    alert(data.message);
-                } else {
-                    document.getElementById('nome').value = data.nome;
-                    document.getElementById('funcao').value = data.funcao;
-                    document.getElementById('data_inicio').value = data.data_inicio;
-                    document.getElementById('data_termino').value = data.data_termino || '';
-                    document.getElementById('departamento').value = data.departamento;
-                    document.getElementById('gerente').value = data.gerente;
-                    document.getElementById('endereco').value = data.endereco;
-                    document.getElementById('telefone').value = data.telefone;
-                    document.getElementById('cpf').value = data.cpf;
-                    document.getElementById('rg').value = data.rg;
-                    document.getElementById('banco').value = data.banco;
-                    document.getElementById('agencia').value = data.agencia;
-                    document.getElementById('conta_corrente').value = data.conta_corrente;
-                }
-            })
-            .catch(error => console.error('Error:', error));
-        });
+            // Verificar se o botão de atualização existe
+            const atualizarButton = document.getElementById('atualizar-funcionario');
+            if (atualizarButton) {
+                atualizarButton.addEventListener('click', async function() {
+                    const matricula = document.getElementById('matricula').value;
+                    if (!matricula) {
+                        alert('Por favor, informe a matrícula do funcionário.');
+                        return;
+                    }
 
-        // Adiciona um novo funcionário
-        document.getElementById('funcionario-form').addEventListener('submit', function(event) {
-            event.preventDefault();
+                    const funcionarioData = {
+                        nome: document.getElementById('nome').value,
+                        funcao: document.getElementById('funcao').value,
+                        data_inicio: document.getElementById('data_inicio').value,
+                        data_termino: document.getElementById('data_termino').value,
+                        departamento: document.getElementById('departamento').value,
+                        gerente: document.getElementById('gerente').value,
+                        endereco: document.getElementById('endereco').value,
+                        telefone: document.getElementById('telefone').value,
+                        cpf: document.getElementById('cpf').value,
+                        rg: document.getElementById('rg').value,
+                        banco: document.getElementById('banco').value,
+                        agencia: document.getElementById('agencia').value,
+                        conta_corrente: document.getElementById('conta_corrente').value
+                    };
 
-            const formData = new FormData(event.target);
-            const data = Object.fromEntries(formData.entries());
+                    try {
+                        const response = await fetch(`/funcionario/${matricula}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(funcionarioData)
+                        });
 
-            fetch('/funcionario', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-                event.target.reset();
-            })
-            .catch(error => console.error('Error:', error));
-        });
-
-        // Atualiza os dados do funcionário
-        document.getElementById('atualizar-funcionario').addEventListener('click', function() {
-            const formData = new FormData(document.getElementById('funcionario-form'));
-            const data = Object.fromEntries(formData.entries());
-            const matricula = data.matricula;
-
-            if (!matricula) {
-                alert('Por favor, insira a matrícula.');
-                return;
+                        const result = await response.json();
+                        alert(result.message);
+                    } catch (error) {
+                        console.error('Erro ao atualizar funcionário:', error);
+                        alert('Erro ao atualizar funcionário.');
+                    }
+                });
             }
-
-            fetch(`/funcionario/${matricula}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-            })
-            .catch(error => console.error('Error:', error));
         });
-
-
-        // tela de index.html
-        // Abre ou fecha o menu ao clicar no botão
-        
-
     </script>
 </body>
 </html>

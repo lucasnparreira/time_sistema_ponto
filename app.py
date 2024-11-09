@@ -12,17 +12,28 @@ def get_db_connection():
 def index():
     return render_template('index.html')
 
-@app.route('/funcionario', methods=['POST','GET'])
+@app.route('/funcionario', methods=['POST', 'GET'])
 def add_funcionario():
     conn = get_db_connection()
     cursor = conn.cursor()
 
     if request.method == 'POST':
-        if request.is_json:
-            data = request.get_json()
-        else:
-            data = request.form
+        # Verifica se o formulário inclui uma busca
+        search = request.form.get('search')
+        if search:
+            # Tenta buscar o funcionário pelo nome ou matrícula
+            cursor.execute('SELECT * FROM FUNCIONARIO WHERE matricula = ? OR nome = ?', (search, search))
+            funcionario = cursor.fetchone()
 
+            if funcionario:
+                conn.close()
+                return render_template('funcionario.html', funcionario=funcionario)
+            else:
+                conn.close()
+                return render_template('funcionario.html', message='Funcionário não encontrado.')
+
+        # Caso não seja uma busca, trata-se de um cadastro
+        data = request.form
         query = '''
             INSERT INTO FUNCIONARIO (matricula, nome, funcao, data_inicio, data_termino, 
                                     departamento, gerente, endereco, telefone, cpf, rg, banco, agencia, conta_corrente)
@@ -36,22 +47,14 @@ def add_funcionario():
         
         cursor.execute(query, values)
         conn.commit()
-
         cursor.close()
         conn.close()
+        
+        return render_template('funcionario.html', message='Funcionário adicionado com sucesso.')
 
-        if request.is_json:
-            return jsonify({'message': 'Funcionário adicionado com sucesso'}), 201
-        else:
-            return render_template('funcionario.html')
-    elif request.method == 'GET':
-        cursor.execute('select * from funcionario')
-        funcionarios = cursor.fetchall()
-
-        cursor.close()
-        conn.close()
-
-        return render_template('funcionario.html', funcionarios=funcionarios)
+    # Caso o método seja GET, apenas exibe o formulário vazio
+    conn.close()
+    return render_template('funcionario.html', funcionario=None)
 
 
 @app.route('/funcionario/<int:matricula>', methods=['DELETE'])
@@ -517,7 +520,7 @@ def add_ponto():
     
     cursor.execute('select codigo, descricao from evento')
     eventos = cursor.fetchall()
-    
+
     if request.method == 'POST':
         #data = request.get_json()
         hora_entrada = request.form.get('hora_entrada')
