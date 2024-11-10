@@ -47,29 +47,34 @@ def add_funcionario():
                 conn.close()
                 return render_template('funcionario.html', message='Funcionário não encontrado.')
 
-        # Caso não seja uma busca, trata-se de um cadastro
-        data = request.form
+        data = request.form 
+        
+        print("Dados recebidos:", data)
+        matricula = data.get('matricula')
+        nome = data.get('nome')
+        if not matricula or not nome:
+            return jsonify("Matrícula e nome são obrigatórios.")
+        
+        # Executa a inserção no banco
         query = '''
             INSERT INTO FUNCIONARIO (matricula, nome, funcao, data_inicio, data_termino, 
                                     departamento, gerente, endereco, telefone, cpf, rg, banco, agencia, conta_corrente)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         '''
         values = (
-            data['matricula'], data['nome'], data['funcao'], data['data_inicio'], data.get('data_termino'),
-            data['departamento'], data['gerente'], data.get('endereco'), data['telefone'], data['cpf'], 
-            data['rg'], data['banco'], data['agencia'], data['conta_corrente']
+            data.get('matricula'), data.get('nome'), data.get('funcao'), data.get('data_inicio'), data.get('data_termino'),
+            data.get('departamento'), data.get('gerente'), data.get('endereco'), data.get('telefone'), data.get('cpf'), 
+            data.get('rg'), data.get('banco'), data.get('agencia'), data.get('conta_corrente')
         )
-        
+
         cursor.execute(query, values)
         conn.commit()
         cursor.close()
         conn.close()
-        
-        return render_template('funcionario.html', message='Funcionário adicionado com sucesso.')
 
-    # Caso o método seja GET, apenas exibe o formulário vazio
-    conn.close()
-    return render_template('funcionario.html', funcionario=None)
+        return render_template('funcionario.html', message='Funcionário cadastrado com sucesso!')
+
+    return render_template('funcionario.html')
 
 
 @app.route('/funcionario/<int:matricula>', methods=['DELETE'])
