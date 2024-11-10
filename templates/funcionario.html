@@ -22,7 +22,7 @@
         </form>
 
         <h3>Gerenciar Funcionário</h3>
-        <form id="funcionario-form" method="POST">
+        <form id="funcionario-form" method="POST" onsubmit="validarCPF()">
             <label for="matricula">Matrícula:</label>
             <input type="number" id="matricula" name="matricula" value="{{ funcionario[0] if funcionario else ''}}"placeholder="Informe a matricula do colaborador" required>
 
@@ -78,8 +78,16 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Função para salvar o funcionário
             const salvarButton = document.getElementById('salvar-funcionario');
+            
             if (salvarButton) {
                 salvarButton.addEventListener('click', async function() {
+                    const cpf = document.getElementById('cpf').value;
+
+                    if (!validarCPF(cpf)) {
+                        alert("Por favor, verifique o cpf informado.");
+                        return;
+                    }
+                    
                     const funcionarioData = {
                         matricula: document.getElementById('matricula').value,
                         nome: document.getElementById('nome').value,
