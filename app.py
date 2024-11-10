@@ -33,10 +33,8 @@ def add_funcionario():
     cursor = conn.cursor()
 
     if request.method == 'POST':
-        # Verifica se o formulário inclui uma busca
         search = request.form.get('search')
         if search:
-            # Tenta buscar o funcionário pelo nome ou matrícula
             cursor.execute('SELECT * FROM FUNCIONARIO WHERE matricula = ? OR nome = ?', (search, search))
             funcionario = cursor.fetchone()
 
@@ -55,7 +53,6 @@ def add_funcionario():
         if not matricula or not nome:
             return jsonify("Matrícula e nome são obrigatórios.")
         
-        # Executa a inserção no banco
         query = '''
             INSERT INTO FUNCIONARIO (matricula, nome, funcao, data_inicio, data_termino, 
                                     departamento, gerente, endereco, telefone, cpf, rg, banco, agencia, conta_corrente)
@@ -106,7 +103,6 @@ def update_funcionario(matricula):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Verificar se o funcionário existe
     cursor.execute('SELECT * FROM FUNCIONARIO WHERE matricula = ?', (matricula,))
     funcionario = cursor.fetchone()
 
@@ -115,10 +111,8 @@ def update_funcionario(matricula):
         conn.close()
         return jsonify({'message': 'Funcionário não encontrado'}), 404
 
-    # Capturar os dados da requisição
     data = request.get_json()
 
-    # Atualizar os dados do funcionário no banco
     query = '''
         UPDATE FUNCIONARIO
         SET nome = ?, funcao = ?, data_inicio = ?, data_termino = ?, 
@@ -147,7 +141,6 @@ def get_funcionario(matricula):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Buscar o funcionário pela matrícula
     cursor.execute('SELECT * FROM FUNCIONARIO WHERE matricula = ?', (matricula,))
     funcionario = cursor.fetchone()
 
@@ -156,7 +149,6 @@ def get_funcionario(matricula):
         conn.close()
         return jsonify({'message': 'Funcionário não encontrado'}), 404
 
-    # Extrair os dados do funcionário
     funcionario_data = {
         'matricula': funcionario['matricula'],
         'nome': funcionario['nome'],
@@ -342,12 +334,10 @@ def delete_departamento(id):
         conn.close()
         return jsonify({'error': 'Departamento não encontrado'}), 404
     
-    # Excluir o departamento
     cursor.execute('DELETE FROM DEPARTAMENTO WHERE id = ?', (id,))
     conn.commit()
     conn.close()
 
-    # Redirecionar de volta para a lista de departamentos
     return redirect(url_for('list_departamentos'))
 
 
@@ -427,7 +417,6 @@ def delete_funcao(id):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Verificar se o departamento existe
     cursor.execute('SELECT * FROM FUNCAO WHERE id = ?', (id,))
     departamento = cursor.fetchone()
 
@@ -435,12 +424,10 @@ def delete_funcao(id):
         conn.close()
         return jsonify({'error': 'função não encontrada'}), 404
     
-    # Excluir o departamento
     cursor.execute('DELETE FROM FUNCAO WHERE id = ?', (id,))
     conn.commit()
     conn.close()
 
-    # Redirecionar de volta para a lista de departamentos
     return redirect(url_for('list_funcoes'))
 
 
@@ -523,7 +510,6 @@ def delete_evento(id):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Verificar se o departamento existe
     cursor.execute('SELECT * FROM EVENTO WHERE id = ?', (id,))
     evento = cursor.fetchone()
 
@@ -531,12 +517,10 @@ def delete_evento(id):
         conn.close()
         return jsonify({'error': 'Evento não encontrado'}), 404
     
-    # Excluir o evento
     cursor.execute('DELETE FROM EVENTO WHERE id = ?', (id,))
     conn.commit()
     conn.close()
 
-    # Redirecionar de volta para a lista de departamentos
     return redirect(url_for('list_eventos'))
 
 
@@ -568,34 +552,51 @@ def list_eventos():
 
 
 
-@app.route('/ponto/cadastro', methods=['GET','POST'])
+@app.route('/ponto/cadastro', methods=['GET', 'POST'])
 @login_required
 def add_ponto():
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    cursor.execute('select codigo, descricao from evento')
+    cursor.execute('SELECT codigo, descricao FROM evento')
     eventos = cursor.fetchall()
-
+    
     if request.method == 'POST':
-        #data = request.get_json()
         hora_entrada = request.form.get('hora_entrada')
         hora_saida = request.form.get('hora_saida')
-        data = request.form.get('data')
-        funcionario = request.form.get('funcionario')
+        data_ponto = request.form.get('data')
+        nome_funcionario = request.form.get('funcionario') 
         evento = request.form.get('evento')
 
-        if not all([hora_entrada, hora_saida, data, funcionario, evento]):
-            return jsonify({'error':'Dados incompletos'}), 404
+        if not all([hora_entrada, hora_saida, data_ponto, nome_funcionario, evento]):
+            return jsonify({'error': 'Dados incompletos'}), 404
         
-        cursor.execute('INSERT INTO PONTO (funcionario, data, hora_entrada, hora_saida, evento) VALUES (?, ?, ?, ?, ?)', (funcionario, data, hora_entrada, hora_saida, evento,))
-        conn.commit()
-        conn.close()
+        cursor.execute('SELECT matricula FROM FUNCIONARIO WHERE nome = ?', (nome_funcionario,))
+        resultado = cursor.fetchone()
+        
+        if resultado:
+            matricula_funcionario = resultado['matricula']
+        else:
+            conn.close()
+            return jsonify({'error': 'Funcionário não encontrado'}), 404
+
+        try:
+            cursor.execute(
+                'INSERT INTO PONTO (funcionario, data, hora_entrada, hora_saida, evento) VALUES (?, ?, ?, ?, ?)',
+                (matricula_funcionario, data_ponto, hora_entrada, hora_saida, evento)
+            )
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            conn.close()
+            return jsonify({'error': f'Erro ao registrar ponto: {str(e)}'}), 500
+        finally:
+            conn.close()
 
         return redirect(url_for('list_pontos'))
     
     conn.close()
-
+    
     return render_template('ponto.html', action='Cadastrar', ponto={}, eventos=eventos)
 
 
@@ -632,7 +633,6 @@ def delete_ponto(id):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Verificar se o ponto existe
     cursor.execute('SELECT * FROM PONTO WHERE id = ?', (id,))
     ponto = cursor.fetchone()
 
@@ -640,12 +640,10 @@ def delete_ponto(id):
         conn.close()
         return jsonify({'error': 'Ponto não encontrado'}), 404
     
-    # Excluir o ponto
     cursor.execute('DELETE FROM PONTO WHERE id = ?', (id,))
     conn.commit()
     conn.close()
 
-    # Redirecionar de volta para a lista de pontos
     return redirect(url_for('list_pontos'))
 
 
@@ -663,6 +661,36 @@ def view_ponto(id):
         return render_template('ponto.html', action='Atualizar', ponto=ponto)
     return redirect(url_for('list_pontos'))
 
+from flask import Flask, request, jsonify
+
+@app.route('/ponto/buscar')
+@login_required
+def buscar_funcionario():
+    query = request.args.get('query')
+    
+    if not query:
+        return jsonify({"error": "A matrícula ou nome deve ser informado para busca"}), 400
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        SELECT matricula, nome
+        FROM FUNCIONARIO
+        WHERE nome LIKE ? OR matricula LIKE ?
+    ''', ('%' + query + '%', '%' + query + '%'))
+    
+    resultado = cursor.fetchone()
+    conn.close()
+    
+    if resultado:
+        funcionario_data = {
+            "matricula": resultado['matricula'],
+            "nome": resultado['nome']
+        }
+        return jsonify(funcionario_data)
+    else:
+        return jsonify({"error": "Funcionário não encontrado"}), 404
 
 @app.route('/pontos')
 @login_required
@@ -799,6 +827,20 @@ def login():
             flash('Usuario ou senha incorretos!', 'danger')
 
     return render_template('login.html')
+
+def get_matricula_by_nome(nome):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT matricula FROM FUNCIONARIO WHERE nome = ?', (nome,))
+    resultado = cursor.fetchone()
+    
+    conn.close()
+    
+    if resultado:
+        return resultado['matricula']
+    else:
+        return None
 
 if __name__ == '__main__':
     app.run(debug=True)
