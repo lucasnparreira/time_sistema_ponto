@@ -1,5 +1,6 @@
 Time - Sistema de Gerenciamento de Ponto Eletronico
-Este é um sistema de gerenciamento de pontos desenvolvido em Python utilizando o framework Flask. O sistema permite gerenciar registros de entrada e saída de funcionários, filtrando os dados por funcionário e evento, e oferecendo uma interface simples e funcional.
+Este é um sistema de gerenciamento de pontos desenvolvido em Python utilizando o framework Flask. 
+O sistema permite gerenciar registros de entrada e saída de funcionários, filtrando os dados por funcionário e evento, e oferecendo uma interface simples e funcional.
 
 🚀 Funcionalidades
 Cadastro de Pontos: Registre horários de entrada e saída, associados a funcionários e eventos específicos.
