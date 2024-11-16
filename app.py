@@ -692,16 +692,53 @@ def buscar_funcionario():
     else:
         return jsonify({"error": "Funcionário não encontrado"}), 404
 
-@app.route('/pontos')
+@app.route('/pontos', methods=['GET', 'POST'])
 @login_required
 def list_pontos():
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('SELECT p.id, f.nome, p.data, p.hora_entrada, p.hora_saida, e.descricao FROM PONTO p JOIN EVENTO e ON p.evento = e.codigo JOIN FUNCIONARIO f ON p.funcionario = f.matricula')
-    pontos = cursor.fetchall()
+
+    pontos = []
+    error = None
+
+    if request.method == 'POST':
+        filtro = request.form.get('filtro') 
+        filtro_evento = request.form.get('filtro_evento')
+
+        query = '''
+            SELECT p.id, f.nome, p.data, p.hora_entrada, p.hora_saida, e.descricao
+            FROM PONTO p
+            JOIN EVENTO e ON p.evento = e.codigo
+            JOIN FUNCIONARIO f ON p.funcionario = f.matricula
+            WHERE 1 = 1
+        '''
+        params = []
+
+        if filtro:
+            query += ' AND (f.matricula = ? OR f.nome LIKE ?)'
+            params.extend([filtro, f"%{filtro}%"])
+
+        if filtro_evento:
+            query += ' AND (e.codigo = ? OR e.descricao LIKE ?)'
+            params.extend([filtro_evento, f"%{filtro_evento}%"])
+
+        if params:
+            cursor.execute(query, params)
+            pontos = cursor.fetchall()
+        else:
+            error = "Por favor, informe ao menos um filtro válido."
+    else:
+        cursor.execute('''
+            SELECT p.id, f.nome, p.data, p.hora_entrada, p.hora_saida, e.descricao
+            FROM PONTO p
+            JOIN EVENTO e ON p.evento = e.codigo
+            JOIN FUNCIONARIO f ON p.funcionario = f.matricula
+        ''')
+        pontos = cursor.fetchall()
+
     conn.close()
-    
-    return render_template('lista_pontos.html', pontos=pontos)
+
+    return render_template('lista_pontos.html', pontos=pontos, error=error)
 
 
 @app.route('/usuario', methods=['GET','POST'])

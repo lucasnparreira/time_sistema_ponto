@@ -13,6 +13,19 @@
 
     <div class="container-relatorios">
         <h2>Lista de Pontos</h2>
+        <form method="POST" action="{{ url_for('list_pontos') }}">
+            <label for="filtro">Buscar por funcionario (nome ou matricula):</label>
+            <input type="text" id="filtro" name="filtro" placeholder="Informe o nome ou matricula">
+            
+            <label for="filtro_evento">Buscar por evento:</label>
+            <input type="text" id="filtro_evento" name="filtro_evento" placeholder="Informe o codigo ou descricao do evento">
+
+            <button type="submit">Buscar</button>
+        </form>
+        {% if error %}
+            <p style="color:red";>{{ error }}</p>
+        {% endif %}
+        
         <table>
             <thead>
                 <tr>
