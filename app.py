@@ -230,7 +230,7 @@ def add_endereco():
     return jsonify({'message':'Endereco adicionado com sucesso!'}), 201
 
 
-@app.route('/endereco/<int:id>', methods=['POST'])
+@app.route('/endereco/<int:id>', methods=['PUT'])
 @login_required
 def edit_endereco(id):
     data = request.json
@@ -345,7 +345,7 @@ def add_departamento():
 
     return jsonify({'message': 'Departamento criado com sucesso!'}), 201
     
-@app.route('/departamento/<int:id>', methods=['POST'])
+@app.route('/departamento/<int:id>', methods=['PUT'])
 @login_required
 def edit_departamento(id):
     data = request.json
@@ -454,7 +454,7 @@ def add_funcao():
 
     return jsonify({'message': 'Funcao criada com sucesso!'}), 201
 
-@app.route('/funcao/<int:id>', methods=['POST'])
+@app.route('/funcao/<int:id>', methods=['PUT'])
 @login_required
 def edit_funcao(id):
     data = request.json
@@ -560,7 +560,7 @@ def add_evento():
     return jsonify({'message': 'Evento criado com sucesso!'}), 201
 
 
-@app.route('/evento/<int:id>', methods=['POST'])
+@app.route('/evento/<int:id>', methods=['PUT'])
 @login_required
 def edit_evento(id):
     data = request.json
@@ -690,7 +690,7 @@ def add_ponto():
     finally:
         conn.close()
 
-@app.route('/ponto/<int:id>', methods=['POST'])
+@app.route('/ponto/<int:id>', methods=['PUT'])
 @login_required
 def edit_ponto(id):
     data = request.json
@@ -897,7 +897,7 @@ def add_usuario():
         conn.close()
 
 
-@app.route('/usuario/<int:id>', methods=['GET','POST'])
+@app.route('/usuario/<int:id>', methods=['GET','PUT'])
 @login_required
 def edit_usuario(id):
     data = request.json
@@ -912,7 +912,7 @@ def edit_usuario(id):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    if request.method == 'POST':
+    if request.method == 'PUT':
         nome = request.form['nome']
         senha = request.form['senha']
 
