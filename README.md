@@ -1,33 +1,69 @@
-Time - Sistema de Gerenciamento de Ponto Eletronico
-Este é um sistema de gerenciamento de pontos desenvolvido em Python utilizando o framework Flask. 
-O sistema permite gerenciar registros de entrada e saída de funcionários, filtrando os dados por funcionário e evento, e oferecendo uma interface simples e funcional.
+# Time - Sistema de Gerenciamento de Ponto Eletrônico
 
-🚀 Funcionalidades
-Cadastro de Pontos: Registre horários de entrada e saída, associados a funcionários e eventos específicos.
+Este é um sistema de gerenciamento de ponto eletrônico desenvolvido em Python utilizando o framework Flask. O sistema permite gerenciar registros de entrada e saída de funcionários, filtrando os dados por funcionário e evento, e oferecendo uma interface simples e funcional.
 
-Relatório de Pontos: Exiba e filtre os registros por:
+> **Aviso**: O frontend do sistema está em reformulação. Por enquanto, somente a API está funcionando. Utilize ferramentas como Postman ou Insomnia para consumir a API.
 
-Funcionário (nome ou matrícula);
-Evento (código ou descrição);
-Combinação de ambos os critérios.
-Autenticação: Sistema protegido com autenticação de usuários.
+## 🚀 Funcionalidades
 
-🛠️ Tecnologias Utilizadas
-Backend: Python com Flask
-Banco de Dados: SQLite
-Frontend: HTML, CSS e Jinja2
-Autenticação: Flask-Login
+- **Cadastro de Pontos**: Registre horários de entrada e saída, associados a funcionários e eventos específicos.
+- **Relatório de Pontos**: Exiba e filtre os registros por:
+  - Funcionário (nome ou matrícula);
+  - Evento (código ou descrição);
+  - Combinação de ambos os critérios.
+- **Autenticação**: Sistema protegido com autenticação de usuários.
 
-⚙️ Como Instalar e Executar
-Pré-requisitos
-Python 3.10 ou superior
-Ambiente virtual (virtualenv ou venv)
-SQLite (já integrado ao Python)
+## 🛠️ Tecnologias Utilizadas
 
-Obs.: Para executar o projeto, basta rodar o arquivo app.py
+- **Backend**: Python com Flask
+- **Banco de Dados**: SQLite
+- **Frontend**: HTML, CSS e Jinja2
+- **Autenticação**: Flask-Login
 
-🖼️ Capturas de Tela
-![time_tela_01](https://github.com/user-attachments/assets/9045245a-77c4-491a-a0f6-1f05fa2720a4)
-![time_tela_02](https://github.com/user-attachments/assets/253f89cc-efb0-4223-a37b-4cc6c7ce8dfb)
-![time_tela_03](https://github.com/user-attachments/assets/14f2a8b6-234e-4346-83fd-0383f7136792)
-![time_tela_04](https://github.com/user-attachments/assets/088c2499-9b48-481d-9b64-bb3bd081e436)
+## ⚙️ Como Instalar e Executar
+
+### Pré-requisitos
+
+- Python 3.10 ou superior
+- Ambiente virtual (`virtualenv` ou `venv`)
+- SQLite (já integrado ao Python)
+
+### Passos para Execução
+
+1. **Clonar o repositório:**
+
+   ```bash
+   git clone https://github.com/seu-usuario/nome-do-repositorio.git
+   cd nome-do-repositorio
+
+Criar e ativar o ambiente virtual:
+
+Para criar o ambiente virtual:
+```json
+python -m venv venv
+```
+
+2. **Para ativar o ambiente virtual:**
+
+No Windows:
+```json
+.\venv\Scripts\activate
+```
+
+No Linux ou macOS:
+```json
+source venv/bin/activate
+```
+
+3. **Instalar as dependências:**
+```json
+pip install -r requirements.txt
+```
+
+4. **Executar o projeto:**
+
+Para rodar o projeto, basta executar o arquivo app.py:
+```json
+python app.py
+```
+
