@@ -187,105 +187,69 @@ def list_enderecos():
 
 @app.route('/departamento', methods=['POST'])
 def add_departamento():
-    if request.method == 'POST':
-        data = request.json
-        descricao = data.get('descricao')
+    data = request.json
+    descricao = data.get('descricao')
 
-        response = requests.post(f"{api_url}/descricao", json=data)
+    if not descricao:
+        return render_template('error.html', message='Dados incompletos'), 400
 
-        if response.status_code == 201:
-            return render_template('lista_departamentos.html', mensagem="Endereço adicionado com sucesso!")
-        else:
-            return render_template('departamento.html', mensagem="Erro ao adicionar o departamento")
+    response = requests.post(f"{api_url}/departamento", json={"descricao": descricao})
     
-    return render_template('lista_departamentos.html', message='Departamento criado com sucesso!'), 201
-    
+    if response.status_code == 201:
+        return render_template('success.html', message='Departamento criado com sucesso!'), 201
+    else:
+        return render_template('error.html', message='Erro ao criar departamento'), response.status_code
+
 @app.route('/departamento/<int:id>', methods=['PUT'])
 def edit_departamento(id):
     data = request.json
     descricao = data.get('descricao')
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    response = requests.get(f"{api_url}/departamento/{id}")
 
-    cursor.execute('SELECT * FROM DEPARTAMENTO WHERE id = ?', (id,))
-    departamento = cursor.fetchone()
+    if response.status_code != 200:
+        return render_template('error.html', message='Departamento não encontrado'), 404
 
-    if not departamento:
-        conn.close()
-        return jsonify({'error': 'Departamento não encontrado'}), 404
-
-    cursor.execute('UPDATE DEPARTAMENTO SET descricao = ? WHERE id = ?', (descricao, id))
-    conn.commit()
-    conn.close()
-
-    return jsonify({'message': 'Departamento atualizado com sucesso!'}), 201
-
+    response = requests.put(f"{api_url}/departamento/{id}", json={"descricao": descricao})
+    
+    if response.status_code == 201:
+        return render_template('success.html', message='Departamento atualizado com sucesso!'), 201
+    else:
+        return render_template('error.html', message='Erro ao atualizar departamento'), response.status_code
 
 @app.route('/departamento/<int:id>/delete', methods=['POST'])
 def delete_departamento(id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    response = requests.get(f"{api_url}/departamento/{id}")
 
-    # Verificar se o departamento existe
-    cursor.execute('SELECT * FROM DEPARTAMENTO WHERE id = ?', (id,))
-    departamento = cursor.fetchone()
+    if response.status_code != 200:
+        return render_template('error.html', message='Departamento não encontrado'), 404
 
-    if not departamento:
-        conn.close()
-        return jsonify({'error': 'Departamento não encontrado'}), 404
-    
-    cursor.execute('DELETE FROM DEPARTAMENTO WHERE id = ?', (id,))
-    conn.commit()
-    conn.close()
+    response = requests.delete(f"{api_url}/departamento/{id}")
 
-    return jsonify({'message': 'Departamento deletado com sucesso!'}), 201
-
-
+    if response.status_code == 201:
+        return render_template('success.html', message='Departamento deletado com sucesso!'), 201
+    else:
+        return render_template('error.html', message='Erro ao deletar departamento'), response.status_code
 
 @app.route('/departamento/<int:id>', methods=['GET'])
 def view_departamento(id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    response = requests.get(f"{api_url}/departamento/{id}")
 
-    cursor.execute('SELECT * FROM DEPARTAMENTO WHERE id = ?', (id,))
-    departamento = cursor.fetchone()
-
-    if not departamento:
-        return jsonify({'error': 'Departamento nao encontrado.'}), 404
-
-    conn.close()
-    
-    return jsonify({'departamento': departamento}), 201
-
+    if response.status_code == 200:
+        departamento = response.json()
+        return render_template('view_departamento.html', departamento=departamento), 200
+    else:
+        return render_template('error.html', message='Departamento não encontrado'), 404
 
 @app.route('/departamentos')
 def list_departamentos():
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    response = requests.get(f"{api_url}/departamentos")
 
-    cursor.execute('SELECT * FROM DEPARTAMENTO')
-    departamentos = cursor.fetchall()
-
-    # Verifica se a tabela está vazia
-    if not departamentos:
-        conn.close()
-        return jsonify({'message': 'Tabela de departamentos vazia.'}), 200
-
-    departamentos_json = [
-        {
-            "id": departamento[0],           # Acesse os valores por índice, assumindo que a consulta retorna as colunas esperadas
-            "descricao": departamento[1]
-        }
-        for departamento in departamentos
-    ]
-
-    conn.close()
-
-    # Retorna a lista de departamentos
-    return jsonify({'departamentos': departamentos_json}), 200
-
-
+    if response.status_code == 200:
+        departamentos = response.json()
+        return render_template('list_departamentos.html', departamentos=departamentos), 200
+    else:
+        return render_template('message.html', message='Tabela de departamentos vazia.'), 200
 
 @app.route('/funcao', methods=['POST'])
 def add_funcao():
@@ -293,116 +257,85 @@ def add_funcao():
     descricao = data.get('descricao')
 
     if not descricao:
-        return jsonify({'error':'Dados incompletos'}), 404
-    
-    conn = get_db_connection()
-    cursor = conn.cursor()
-        
-    cursor.execute('INSERT INTO FUNCAO (descricao) VALUES (?)', (descricao,))
-    conn.commit()
-    conn.close()
+        return render_template('error.html', message='Dados incompletos'), 400
 
-    return jsonify({'message': 'Funcao criada com sucesso!'}), 201
+    response = requests.post(f"{api_url}/funcao", json={"descricao": descricao})
+
+    if response.status_code == 201:
+        return render_template('success.html', message='Função criada com sucesso!'), 201
+    else:
+        return render_template('error.html', message='Erro ao criar função'), response.status_code
 
 @app.route('/funcao/<int:id>', methods=['PUT'])
 def edit_funcao(id):
     data = request.json
-    #id = request.form.get('id')
     descricao = data.get('descricao')
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute('SELECT * FROM FUNCAO WHERE id = ?', (id,))
-    funcao = cursor.fetchone()
+    response = requests.get(f"{api_url}/funcao/{id}")
 
-    if not funcao:
-        conn.close()
-        return jsonify({'error': 'Função não encontrada'}), 404
+    if response.status_code != 200:
+        return render_template('error.html', message='Função não encontrada'), 404
 
-    cursor.execute('UPDATE FUNCAO SET descricao = ? WHERE id = ?', (descricao, id))
-    conn.commit()
-    conn.close()
+    response = requests.put(f"{api_url}/funcao/{id}", json={"descricao": descricao})
 
-    return jsonify({'message': 'Funcao atualizada com sucesso!'}), 201
-
+    if response.status_code == 201:
+        return render_template('success.html', message='Função atualizada com sucesso!'), 201
+    else:
+        return render_template('error.html', message='Erro ao atualizar função'), response.status_code
 
 @app.route('/funcao/<int:id>/delete', methods=['POST'])
 def delete_funcao(id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    response = requests.get(f"{api_url}/funcao/{id}")
 
-    cursor.execute('SELECT * FROM FUNCAO WHERE id = ?', (id,))
-    funcao = cursor.fetchone()
+    if response.status_code != 200:
+        return render_template('error.html', message='Função não encontrada'), 404
 
-    if not funcao:
-        conn.close()
-        return jsonify({'error': 'função não encontrada'}), 404
-    
-    cursor.execute('DELETE FROM FUNCAO WHERE id = ?', (id,))
-    conn.commit()
-    conn.close()
+    response = requests.delete(f"{api_url}/funcao/{id}")
 
-    return jsonify({'message': 'Funcao deletada com sucesso!'}), 201
-
-
+    if response.status_code == 201:
+        return render_template('success.html', message='Função deletada com sucesso!'), 201
+    else:
+        return render_template('error.html', message='Erro ao deletar função'), response.status_code
 
 @app.route('/funcao/<int:id>', methods=['GET'])
 def view_funcao(id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    response = requests.get(f"{api_url}/funcao/{id}")
 
-    cursor.execute('SELECT * FROM FUNCAO WHERE id = ?', (id,))
-    funcao = cursor.fetchone()
-    
-    if not funcao:
-        conn.close()
-        return jsonify({'error': 'função não encontrada'}), 404
-
-    conn.close()
-    return jsonify({'funcao': funcao}), 201
+    if response.status_code == 200:
+        funcao = response.json()
+        return render_template('view_funcao.html', funcao=funcao), 200
+    else:
+        return render_template('error.html', message='Função não encontrada'), 404
 
 @app.route('/funcoes')
 def list_funcoes():
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    response = requests.get(f"{api_url}/funcoes")
 
-    cursor.execute('SELECT * FROM FUNCAO')
-    funcoes = cursor.fetchall()
-
-    if not funcoes:
-        conn.close()
-        return jsonify({'message': 'Tabela de funções vazia'}), 200  # Retorna 200 OK se não houver funções
-    
-    funcoes_json = [
-        {
-            "id": funcao[0],           # Acesse os valores por índice
-            "descricao": funcao[1]
-        }
-        for funcao in funcoes
-    ]
-
-    conn.close()
-
-    return jsonify({'funcoes': funcoes_json}), 200
+    if response.status_code == 200:
+        funcoes = response.json()
+        return render_template('list_funcoes.html', funcoes=funcoes), 200
+    else:
+        return render_template('message.html', message='Tabela de funções vazia.'), 200
 
 @app.route('/evento/novo', methods=['GET','POST'])
 def add_evento():
-    data = request.json
-    codigo = data.get('codigo')
-    descricao = data.get('descricao')
+    if request.method == 'POST':
+        data = request.json
+        codigo = data.get('codigo')
+        descricao = data.get('descricao')
 
-    if not descricao:
-        return jsonify({'error': 'Dados incompletos'}), 400
+        if not descricao:
+            return render_template('error.html', message='Dados incompletos'), 400
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+        # Fazendo a requisição POST para a nova API
+        response = requests.post(f"{api_url}/eventos", json={'codigo': codigo, 'descricao': descricao})
 
-    cursor.execute('INSERT INTO EVENTO (codigo, descricao) VALUES (?, ?)', (codigo, descricao,))
-    conn.commit()
-    conn.close()
+        if response.status_code == 201:
+            return render_template('success.html', message='Evento criado com sucesso!')
+        else:
+            return render_template('error.html', message='Erro ao criar evento'), 500
 
-    return jsonify({'message': 'Evento criado com sucesso!'}), 201
+    return render_template('form_evento.html')
 
 
 @app.route('/evento/<int:id>', methods=['PUT'])
@@ -411,385 +344,129 @@ def edit_evento(id):
     codigo = data.get('codigo')
     descricao = data.get('descricao')
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    response = requests.put(f"{api_url}/eventos/{id}", json={'codigo': codigo, 'descricao': descricao})
 
-    cursor.execute('SELECT * FROM EVENTO WHERE id = ?', (id,))
-    evento = cursor.fetchone()
-
-    if not evento:
-        conn.close()
-        return jsonify({'error': 'Evento não encontrado'}), 404
-
-    cursor.execute('UPDATE EVENTO SET codigo = ?, descricao = ? WHERE id = ?', (codigo, descricao, id))
-    conn.commit()
-    conn.close()
-
-    return jsonify({'message': 'Evento atualizado com sucesso!'})
+    if response.status_code == 200:
+        return render_template('success.html', message='Evento atualizado com sucesso!')
+    else:
+        return render_template('error.html', message='Erro ao atualizar evento'), 500
 
 
 @app.route('/evento/<int:id>/delete', methods=['POST'])
 def delete_evento(id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    response = requests.delete(f"{api_url}/eventos/{id}")
 
-    cursor.execute('SELECT * FROM EVENTO WHERE id = ?', (id,))
-    evento = cursor.fetchone()
-
-    if not evento:
-        conn.close()
-        return jsonify({'error': 'Evento não encontrado'}), 404
-
-    cursor.execute('DELETE FROM EVENTO WHERE id = ?', (id,))
-    conn.commit()
-    conn.close()
-
-    return jsonify({'message': 'Evento deletado com sucesso!'})
-
+    if response.status_code == 200:
+        return render_template('success.html', message='Evento deletado com sucesso!')
+    else:
+        return render_template('error.html', message='Erro ao deletar evento'), 500
 
 
 @app.route('/evento/<int:id>', methods=['GET'])
 def view_evento(id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    response = requests.get(f"{api_url}/eventos/{id}")
 
-    cursor.execute('SELECT * FROM EVENTO WHERE id = ?', (id,))
-    evento = cursor.fetchone()
+    if response.status_code == 200:
+        evento = response.json()
+        return render_template('view_evento.html', evento=evento)
+    else:
+        return render_template('error.html', message='Evento não encontrado'), 404
 
-    if not evento:
-        conn.close()
-        return jsonify({'error': 'Evento não encontrado'}), 404
-    
-    conn.close()
-    
-    return jsonify({'evento': evento}), 201
 
 @app.route('/eventos')
 def list_eventos():
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    response = requests.get(f"{api_url}/eventos")
 
-    cursor.execute('SELECT * FROM EVENTO')
-    eventos = cursor.fetchall()
+    if response.status_code == 200:
+        eventos = response.json()
+        return render_template('list_eventos.html', eventos=eventos)
+    else:
+        return render_template('message.html', message='Nenhum evento encontrado'), 200
 
-    if not eventos:
-        conn.close()
-        return jsonify({'message': 'Tabela de eventos vazia'}), 200  
-
-    eventos_json = [
-        {
-            "id": evento[0],           
-            "codigo": evento[1],
-            "descricao": evento[2]
-        }
-        for evento in eventos
-    ]
-
-    conn.close()
-
-    return jsonify({'eventos': eventos_json}), 200  
 
 @app.route('/ponto', methods=['GET', 'POST'])
 def add_ponto():
-    data = request.json
-    hora_entrada = data.get('hora_entrada')
-    hora_saida = data.get('hora_saida')
-    data_ponto = data.get('data')
-    nome_funcionario = data.get('funcionario') 
-    evento = data.get('evento')
+    if request.method == 'POST':
+        data = request.json
+        hora_entrada = data.get('hora_entrada')
+        hora_saida = data.get('hora_saida')
+        data_ponto = data.get('data')
+        nome_funcionario = data.get('funcionario') 
+        evento = data.get('evento')
 
-    if not all([hora_entrada, hora_saida, data_ponto, nome_funcionario, evento]):
-            return jsonify({'error': 'Dados incompletos'}), 404
+        if not all([hora_entrada, hora_saida, data_ponto, nome_funcionario, evento]):
+                return render_template('error.html', message='Dados incompletos'), 404
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute('SELECT codigo, descricao FROM evento')
-    eventos = cursor.fetchall()
+        response = requests.post(f"{api_url}/pontos", json={
+            'hora_entrada': hora_entrada,
+            'hora_saida': hora_saida,
+            'data': data_ponto,
+            'funcionario': nome_funcionario,
+            'evento': evento
+        })
 
-    cursor.execute('SELECT matricula FROM FUNCIONARIO WHERE nome = ?', (nome_funcionario,))
-    resultado = cursor.fetchone()
-        
-    if resultado:
-        matricula_funcionario = resultado['matricula']
-    else:
-        conn.close()
-        return jsonify({'error': 'Funcionário não encontrado'}), 404
+        if response.status_code == 201:
+            return render_template('success.html', message='Ponto registrado com sucesso!')
+        else:
+            return render_template('error.html', message='Erro ao registrar ponto'), 500
 
-    try:
-        cursor.execute(
-            'INSERT INTO PONTO (funcionario, data, hora_entrada, hora_saida, evento) VALUES (?, ?, ?, ?, ?)',
-            (matricula_funcionario, data_ponto, hora_entrada, hora_saida, evento)
-        )
-        conn.commit()
-        return jsonify({'message': 'Ponto registrado com sucesso!'}), 201
-    except Exception as e:
-        conn.rollback()
-        conn.close()
-        return jsonify({'error': f'Erro ao registrar ponto: {str(e)}'}), 500
-    finally:
-        conn.close()
+    return render_template('form_ponto.html')
+
 
 @app.route('/ponto/<int:id>', methods=['PUT'])
 def edit_ponto(id):
     data = request.json
-    #id = request.form.get('id')
     hora_entrada = data.get('hora_entrada')
     hora_saida = data.get('hora_saida')
     data = data.get('data')
     funcionario = data.get('funcionario')
     evento = data.get('evento')
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    response = requests.put(f"{api_url}/pontos/{id}", json={
+        'hora_entrada': hora_entrada,
+        'hora_saida': hora_saida,
+        'data': data,
+        'funcionario': funcionario,
+        'evento': evento
+    })
 
-    cursor.execute('SELECT * FROM EVENTO WHERE id = ?', (id,))
-    ponto = cursor.fetchone()
+    if response.status_code == 200:
+        return render_template('success.html', message='Ponto atualizado com sucesso!')
+    else:
+        return render_template('error.html', message='Erro ao atualizar ponto'), 500
 
-    if not ponto:
-        conn.close()
-        return jsonify({'error': 'Ponto não encontrado'}), 404
-
-    cursor.execute('UPDATE PONTO SET funcionario = ?, data = ?, hora_entrada = ?, hora_saida = ?, evento = ? WHERE id = ?', (hora_entrada, hora_saida, data, funcionario, evento, id))
-    conn.commit()
-    conn.close()
-
-    return jsonify({'message': 'Ponto atualizado com sucesso!'})
 
 @app.route('/ponto/<int:id>/delete', methods=['DELETE'])
 def delete_ponto(id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    response = requests.delete(f"{api_url}/pontos/{id}")
 
-    cursor.execute('SELECT * FROM PONTO WHERE id = ?', (id,))
-    ponto = cursor.fetchone()
+    if response.status_code == 200:
+        return render_template('success.html', message='Ponto deletado com sucesso!')
+    else:
+        return render_template('error.html', message='Erro ao deletar ponto'), 500
 
-    if not ponto:
-        conn.close()
-        return jsonify({'error': 'Ponto não encontrado'}), 404
-    
-    cursor.execute('DELETE FROM PONTO WHERE id = ?', (id,))
-    conn.commit()
-    conn.close()
-
-    return jsonify({'message': 'Ponto deletado com sucesso!'})
 
 @app.route('/ponto/<int:id>', methods=['GET'])
 def view_ponto(id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute('''
-        SELECT p.id, f.nome, p.data, p.hora_entrada, p.hora_saida, e.descricao
-        FROM PONTO p
-        JOIN EVENTO e ON p.evento = e.codigo
-        JOIN FUNCIONARIO f ON p.funcionario = f.matricula
-        and p.id = ?
-    ''', (id,))
+    response = requests.get(f"{api_url}/pontos/{id}")
 
-    ponto = cursor.fetchone()
-    
-    if not ponto:  # Caso não haja o ponto no banco de dados
-        conn.close()
-        return jsonify({'error': 'Ponto não encontrado'}), 404
-    
-    ponto_json = [
-        {
-            "id": ponto[0],
-            "nome": ponto[1],
-            "data": ponto[2],
-            "hora_entrada": ponto[3],
-            "hora_saida": ponto[4],
-            "evento": ponto[5]
-        }
-    ]
-
-    return jsonify({"pontos": ponto_json}), 200
-
-
-@app.route('/ponto/buscar')
-def buscar_funcionario():
-    query = request.args.get('query')
-    
-    if not query:
-        return jsonify({"error": "A matrícula ou nome deve ser informado para busca"}), 400
-    
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute('''
-        SELECT matricula, nome
-        FROM FUNCIONARIO
-        WHERE nome LIKE ? OR matricula LIKE ?
-    ''', ('%' + query + '%', '%' + query + '%'))
-    
-    resultado = cursor.fetchone()
-    conn.close()
-    
-    if resultado:
-        funcionario_data = {
-            "matricula": resultado['matricula'],
-            "nome": resultado['nome']
-        }
-        return jsonify(funcionario_data)
+    if response.status_code == 200:
+        ponto = response.json()
+        return render_template('view_ponto.html', ponto=ponto)
     else:
-        return jsonify({"error": "Funcionário não encontrado"}), 404
+        return render_template('error.html', message='Ponto não encontrado'), 404
 
-@app.route('/pontos', methods=['GET', 'POST'])
-def list_pontos():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    pontos = []
-    
-    try:
-        if request.method == 'POST':
-            data = request.json  # Recebe JSON corretamente
-            filtro = data.get('filtro')
-            filtro_evento = data.get('filtro_evento')
-
-            query = '''
-                SELECT p.id, f.nome, p.data, p.hora_entrada, p.hora_saida, e.descricao
-                FROM PONTO p
-                JOIN EVENTO e ON p.evento = e.codigo
-                JOIN FUNCIONARIO f ON p.funcionario = f.matricula
-                WHERE 1 = 1
-            '''
-            params = []
-
-            if filtro:
-                query += ' AND (f.matricula = ? OR f.nome LIKE ?)'
-                params.extend([filtro, f"%{filtro}%"])
-
-            if filtro_evento:
-                query += ' AND (e.codigo = ? OR e.descricao LIKE ?)'
-                params.extend([filtro_evento, f"%{filtro_evento}%"])
-
-            cursor.execute(query, params)
-        else:
-            cursor.execute('''
-                SELECT p.id, f.nome, p.data, p.hora_entrada, p.hora_saida, e.descricao
-                FROM PONTO p
-                JOIN EVENTO e ON p.evento = e.codigo
-                JOIN FUNCIONARIO f ON p.funcionario = f.matricula
-            ''')
-
-        pontos = cursor.fetchall()
-        
-        pontos_json = [
-            {
-                "id": row[0],
-                "nome": row[1],
-                "data": row[2],
-                "hora_entrada": row[3],
-                "hora_saida": row[4],
-                "evento": row[5]
-            }
-            for row in pontos
-        ]
-
-        return jsonify({"pontos": pontos_json}), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-    finally:
-        cursor.close()
-        conn.close()
-
-
-
-@app.route('/usuario', methods=['POST'])
-def add_usuario():
-    data = request.json
-    nome = data.get('nome')
-    senha = data.get('senha')
-
-    if not nome or not senha:
-        return jsonify({"error":"Nome e senha sao obrigatorios"}), 400
-    
-    if senha.strip() == '':
-        return jsonify({"error":"Senha nao pode ser vazia"}), 400
-    
-    try:
-        hashed_password = generate_password_hash(senha)
-    except Exception as e:
-        return jsonify({"error": f"Erro ao criptografar a senha: {e}"}), 500
-    
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute('INSERT INTO usuario (nome, senha) VALUES (?, ?)', (nome, hashed_password))
-        conn.commit()
-        return jsonify({"message": "Usuario cadastrado com sucesso!"}), 201
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"error": f"Erro ao cadastrar o usuario: {e}"}), 500
-    finally:
-        cursor.close()
-        conn.close()
-
-
-@app.route('/usuario/<int:id>', methods=['GET','PUT'])
-def edit_usuario(id):
-    data = request.json
-    nome = data.get('nome')
-    senha = data.get('senha')
-
-    if not nome or not senha:
-        return jsonify({"error": "Nome e senha sao obrigatorios"}), 400
-    
-    hashed_password = generate_password_hash(senha)
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    if request.method == 'PUT':
-        nome = request.form['nome']
-        senha = request.form['senha']
-
-        hashed_password = generate_password_hash(senha)
-
-        cursor.execute('''
-                        update usuario
-                       set nome = ?, senha = ?
-                       where id = ?
-                       ''', (nome, hashed_password, id))
-        
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-        return jsonify({"message": "Usuario atualizado com sucesso!"})
-
-@app.route('/usuario/delete/<int:id>', methods=['DELETE'])
-def delete_usuario(id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute('delete from usuario where id = ?', (id,))
-    conn.commit()
-
-    cursor.close()
-    conn.close()
-
-    return jsonify({"message": "Usuario deletado com sucesso!"})
 
 @app.route('/usuarios', methods=['GET'])
 def listar_usuarios():
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    response = requests.get(f"{api_url}/usuarios")
 
-    cursor.execute('SELECT * FROM usuario')
-    usuarios = cursor.fetchall()
+    if response.status_code == 200:
+        usuarios = response.json()
+        return render_template('list_usuarios.html', usuarios=usuarios)
+    else:
+        return render_template('error.html', message='Nenhum usuário encontrado'), 200
 
-    cursor.close()
-    conn.close()
-
-    usuarios_json = [{"id": u['id'], "nome": u['nome']} for u in usuarios]
-
-    return jsonify({"usuarios": usuarios_json})
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8000, debug=True)
