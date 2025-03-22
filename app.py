@@ -21,9 +21,9 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+# @app.route('/')
+# def index():
+#     return render_template('index.html')
 
 
 @app.route('/funcionario', methods=['POST', 'GET'])
@@ -32,25 +32,25 @@ def add_funcionario():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    if request.method == 'POST':
+    #buscar funcionario por matricula ou nome
+    if request.method == 'GET':
         search = request.form.get('search')
         if search:
             cursor.execute('SELECT * FROM FUNCIONARIO WHERE matricula = ? OR nome = ?', (search, search))
             funcionario = cursor.fetchone()
 
             if funcionario:
-                conn.close()
-                return render_template('funcionario.html', funcionario=funcionario)
+                return jsonify({'funcionario': funcionario}), 200
             else:
                 conn.close()
-                return render_template('funcionario.html', message='Funcionário não encontrado.')
+                return jsonify({'error':'Funcionário não encontrado.'}), 404
 
-        data = request.form 
+    if request.method == 'POST':
+        data = request.json 
         
         print("Dados recebidos:", data)
-        matricula = data.get('matricula')
-        nome = data.get('nome')
-        if not matricula or not nome:
+        
+        if not data.get('matricula') or not data.get('nome'):
             return jsonify("Matrícula e nome são obrigatórios.")
         
         query = '''
@@ -64,15 +64,15 @@ def add_funcionario():
             data.get('rg'), data.get('banco'), data.get('agencia'), data.get('conta_corrente')
         )
 
-        cursor.execute(query, values)
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-        return render_template('funcionario.html', message='Funcionário cadastrado com sucesso!')
-
-    return render_template('funcionario.html')
-
+        try:
+            cursor.execute(query, values)
+            conn.commit()
+            return jsonify({'message': 'Funcionario cadastrado com sucesso!'}), 201
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+        finally:
+            cursor.close()
+            conn.close()
 
 @app.route('/funcionario/<int:matricula>', methods=['DELETE'])
 @login_required
@@ -83,7 +83,7 @@ def delete_funcionario(matricula):
     cursor.execute('select * from funcionario where matricula = ?', (matricula,) )
     funcionario = cursor.fetchone()
 
-    if funcionario is None:
+    if not funcionario:
         cursor.close()
         conn.close()
         return jsonify({'message': 'Funcionário não encontrado'}), 404
@@ -144,7 +144,7 @@ def get_funcionario(matricula):
     cursor.execute('SELECT * FROM FUNCIONARIO WHERE matricula = ?', (matricula,))
     funcionario = cursor.fetchone()
 
-    if funcionario is None:
+    if not funcionario:
         cursor.close()
         conn.close()
         return jsonify({'message': 'Funcionário não encontrado'}), 404
@@ -176,48 +176,72 @@ def get_funcionario(matricula):
 def list_funcionarios():
     conn = get_db_connection()
     cursor = conn.cursor()
+
     cursor.execute('SELECT * FROM FUNCIONARIO')
     funcionarios = cursor.fetchall()
+
+    # Verificar se a tabela está vazia
+    if not funcionarios:
+        return jsonify({'message': 'Tabela de funcionários vazia'}), 200
+    
+    funcionarios_json = [
+        {
+            "matricula": funcionario[0],
+            "nome": funcionario[1],
+            "funcao": funcionario[2],
+            "data_inicio": funcionario[3],
+            "data_termino": funcionario[4],
+            "departamento": funcionario[5],
+            "gerente": funcionario[6],
+            "endereco": funcionario[7],
+            "telefone": funcionario[8],
+            "cpf": funcionario[9],
+            "rg": funcionario[10],
+            "banco": funcionario[11],
+            "agencia": funcionario[12],
+            "conta_corrente": funcionario[13]
+        }
+        for funcionario in funcionarios
+    ]
+
     conn.close()
     
-    return render_template('lista_funcionarios.html', funcionarios=funcionarios)
+    return jsonify({'funcionarios': funcionarios_json}), 200
 
-
-@app.route('/endereco/novo', methods=['GET','POST'])
+@app.route('/endereco', methods=['GET','POST'])
 @login_required
 def add_endereco():
-    if request.method == 'POST':
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        #data = request.get_json()
-        rua = request.form.get('rua')
-        bairro = request.form.get('bairro')
-        cidade = request.form.get('cidade')
-        pais = request.form.get('pais')
+    data = request.json
+    rua = data.get('rua')
+    bairro = data.get('bairro')
+    cidade = data.get('cidade')
+    pais = data.get('pais')
 
-        if not all([rua, bairro, cidade, pais]):
-            return jsonify({'error':'Dados incompletos'}), 404
-        
-        cursor.execute('INSERT INTO ENDERECO (rua, bairro, cidade, pais) VALUES (?, ?, ?, ?)', (rua, bairro, cidade, pais))
-        conn.commit()
-        conn.close()
-
-        return redirect(url_for('list_enderecos'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
     
-    return render_template('endereco.html', action='Cadastrar', endereco={})
+    if not all([rua, bairro, cidade, pais]):
+        return jsonify({'error':'Dados incompletos'}), 404
+    
+    cursor.execute('INSERT INTO ENDERECO (rua, bairro, cidade, pais) VALUES (?, ?, ?, ?)', (rua, bairro, cidade, pais))
+    conn.commit()
+    conn.close()
+
+    return jsonify({'message':'Endereco adicionado com sucesso!'}), 201
 
 
 @app.route('/endereco/<int:id>', methods=['POST'])
 @login_required
 def edit_endereco(id):
+    data = request.json
+    rua = data.get('rua')
+    bairro = data.get('bairro')
+    cidade = data.get('cidade')
+    pais = data.get('pais')
+
     conn = get_db_connection()
     cursor = conn.cursor()
-    #data = request.get_json()
-
-    rua = request.form.get('rua')
-    bairro = request.form.get('bairro')
-    cidade = request.form.get('cidade')
-    pais = request.form.get('pais')
+    
 
     cursor.execute('SELECT * FROM ENDERECO WHERE id = ?', (id,))
     endereco = cursor.fetchone()
@@ -229,7 +253,7 @@ def edit_endereco(id):
     conn.commit()
     conn.close()
 
-    return redirect(url_for('list_enderecos'))
+    return jsonify({'message': 'Endereco atualizado com sucesso!'}), 201
 
 
 @app.route('/endereco/<int:id>', methods=['POST'])
@@ -237,6 +261,7 @@ def edit_endereco(id):
 def delete_endereco(id):
     conn = get_db_connection()
     cursor = conn.cursor()
+
     cursor.execute('SELECT * FROM ENDERECO WHERE id = ?', (id,))
     endereco = cursor.fetchone()
 
@@ -247,7 +272,7 @@ def delete_endereco(id):
     conn.commit()
     conn.close()
 
-    return redirect(url_for('list_enderecos'))
+    return jsonify({'message': 'Endereco deletado com sucesso!'}), 201
 
 
 @app.route('/endereco/<int:id>', methods=['GET'])
@@ -255,13 +280,17 @@ def delete_endereco(id):
 def view_endereco(id):
     conn = get_db_connection()
     cursor = conn.cursor()
+
     cursor.execute('SELECT * FROM ENDERECO WHERE id = ?', (id,))
     endereco = cursor.fetchone()
+
+    if not endereco:
+        conn.close()
+        return jsonify({'error': 'Endereco não encontrado'}), 404
+    
     conn.close()
     
-    if endereco:
-        return render_template('endereco.html', action='Atualizar', endereco=endereco)
-    return redirect(url_for('list_enderecos'))
+    return jsonify({'endereco': endereco})
 
 
 @app.route('/enderecos', methods=['GET'])
@@ -269,55 +298,74 @@ def view_endereco(id):
 def list_enderecos():
     conn = get_db_connection()
     cursor = conn.cursor()
+
     cursor.execute('SELECT * FROM ENDERECO')
     enderecos = cursor.fetchall()
+
+    # Verifique a estrutura das tuplas retornadas
+    print("Endereços retornados:", enderecos)  # Adicionei este print para depurar
+
+    # Verificar se a tabela está vazia
+    if not enderecos:
+        conn.close()
+        return jsonify({'message': 'Tabela de endereços vazia'}), 200
+
+    # Estruturar o retorno para JSON de maneira mais amigável
+    enderecos_json = [
+        {
+            "id": endereco[0],            # Verifique se a tupla tem pelo menos 7 elementos
+            "logradouro": endereco[1],    # Caso contrário, isso gerará o erro
+            "numero": endereco[2],
+            "bairro": endereco[3],
+            "cidade": endereco[4],
+            "cep": endereco[5]
+        }
+        for endereco in enderecos
+    ]
+
     conn.close()
     
-    return render_template('lista_enderecos.html', enderecos=enderecos)
+    return jsonify({'enderecos': enderecos_json}), 200
 
-
-@app.route('/departamento/novo', methods=['GET','POST'])
+@app.route('/departamento', methods=['POST'])
 @login_required
 def add_departamento():
-    if request.method == 'POST':
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        #data = request.get_json()
-        descricao = request.form.get('descricao')
+    data = request.json 
+    descricao = data.get('descricao')
 
-        if not all([descricao]):
-            return jsonify({'error':'Dados incompletos'}), 404
-        
-        cursor.execute('INSERT INTO DEPARTAMENTO (descricao) VALUES (?)', (descricao,))
-        conn.commit()
-        conn.close()
-
-        return redirect(url_for('list_departamentos'))
+    if not descricao:
+        return jsonify({'error': 'Dados incompletos'}), 400
     
-    return render_template('departamento.html', action='Cadastrar', departamento={})
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('INSERT INTO DEPARTAMENTO (descricao) VALUES (?)', (descricao,))
+    conn.commit()
+    conn.close()
 
-
+    return jsonify({'message': 'Departamento criado com sucesso!'}), 201
+    
 @app.route('/departamento/<int:id>', methods=['POST'])
 @login_required
 def edit_departamento(id):
+    data = request.json
+    descricao = data.get('descricao')
+
     conn = get_db_connection()
     cursor = conn.cursor()
-    #data = request.get_json()
-
-    id = request.form.get('id')
-    descricao = request.form.get('descricao')
 
     cursor.execute('SELECT * FROM DEPARTAMENTO WHERE id = ?', (id,))
     departamento = cursor.fetchone()
 
     if not departamento:
+        conn.close()
         return jsonify({'error': 'Departamento não encontrado'}), 404
 
     cursor.execute('UPDATE DEPARTAMENTO SET descricao = ? WHERE id = ?', (descricao, id))
     conn.commit()
     conn.close()
 
-    return redirect(url_for('list_departamentos'))
+    return jsonify({'message': 'Departamento atualizado com sucesso!'}), 201
 
 
 @app.route('/departamento/<int:id>/delete', methods=['POST'])
@@ -338,7 +386,7 @@ def delete_departamento(id):
     conn.commit()
     conn.close()
 
-    return redirect(url_for('list_departamentos'))
+    return jsonify({'message': 'Departamento deletado com sucesso!'}), 201
 
 
 
@@ -347,13 +395,16 @@ def delete_departamento(id):
 def view_departamento(id):
     conn = get_db_connection()
     cursor = conn.cursor()
+
     cursor.execute('SELECT * FROM DEPARTAMENTO WHERE id = ?', (id,))
     departamento = cursor.fetchone()
+
+    if not departamento:
+        return jsonify({'error': 'Departamento nao encontrado.'}), 404
+
     conn.close()
     
-    if departamento:
-        return render_template('departamento.html', action='Atualizar', departamento=departamento)
-    return redirect(url_for('list_departamentos'))
+    return jsonify({'departamento': departamento}), 201
 
 
 @app.route('/departamentos')
@@ -361,54 +412,70 @@ def view_departamento(id):
 def list_departamentos():
     conn = get_db_connection()
     cursor = conn.cursor()
+
     cursor.execute('SELECT * FROM DEPARTAMENTO')
     departamentos = cursor.fetchall()
+
+    # Verifica se a tabela está vazia
+    if not departamentos:
+        conn.close()
+        return jsonify({'message': 'Tabela de departamentos vazia.'}), 200
+
+    departamentos_json = [
+        {
+            "id": departamento[0],           # Acesse os valores por índice, assumindo que a consulta retorna as colunas esperadas
+            "descricao": departamento[1]
+        }
+        for departamento in departamentos
+    ]
+
     conn.close()
-    
-    return render_template('lista_departamentos.html', departamentos=departamentos)
+
+    # Retorna a lista de departamentos
+    return jsonify({'departamentos': departamentos_json}), 200
 
 
-@app.route('/funcao/novo', methods=['GET','POST'])
+
+@app.route('/funcao', methods=['POST'])
 @login_required
 def add_funcao():
-    if request.method == 'POST':
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        #data = request.get_json()
-        descricao = request.form.get('descricao')
+    data = request.json
+    descricao = data.get('descricao')
 
-        if not all([descricao]):
-            return jsonify({'error':'Dados incompletos'}), 404
-        
-        cursor.execute('INSERT INTO FUNCAO (descricao) VALUES (?)', (descricao,))
-        conn.commit()
-        conn.close()
-
-        return redirect(url_for('list_funcoes'))
+    if not descricao:
+        return jsonify({'error':'Dados incompletos'}), 404
     
-    return render_template('funcao.html', action='Cadastrar', funcao={})
+    conn = get_db_connection()
+    cursor = conn.cursor()
+        
+    cursor.execute('INSERT INTO FUNCAO (descricao) VALUES (?)', (descricao,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({'message': 'Funcao criada com sucesso!'}), 201
 
 @app.route('/funcao/<int:id>', methods=['POST'])
 @login_required
 def edit_funcao(id):
+    data = request.json
+    #id = request.form.get('id')
+    descricao = data.get('descricao')
+
     conn = get_db_connection()
     cursor = conn.cursor()
-    #data = request.get_json()
-
-    id = request.form.get('id')
-    descricao = request.form.get('descricao')
-
+    
     cursor.execute('SELECT * FROM FUNCAO WHERE id = ?', (id,))
-    departamento = cursor.fetchone()
+    funcao = cursor.fetchone()
 
-    if not departamento:
+    if not funcao:
+        conn.close()
         return jsonify({'error': 'Função não encontrada'}), 404
 
     cursor.execute('UPDATE FUNCAO SET descricao = ? WHERE id = ?', (descricao, id))
     conn.commit()
     conn.close()
 
-    return redirect(url_for('list_funcoes'))
+    return jsonify({'message': 'Funcao atualizada com sucesso!'}), 201
 
 
 @app.route('/funcao/<int:id>/delete', methods=['POST'])
@@ -418,9 +485,9 @@ def delete_funcao(id):
     cursor = conn.cursor()
 
     cursor.execute('SELECT * FROM FUNCAO WHERE id = ?', (id,))
-    departamento = cursor.fetchone()
+    funcao = cursor.fetchone()
 
-    if not departamento:
+    if not funcao:
         conn.close()
         return jsonify({'error': 'função não encontrada'}), 404
     
@@ -428,7 +495,7 @@ def delete_funcao(id):
     conn.commit()
     conn.close()
 
-    return redirect(url_for('list_funcoes'))
+    return jsonify({'message': 'Funcao deletada com sucesso!'}), 201
 
 
 
@@ -437,71 +504,84 @@ def delete_funcao(id):
 def view_funcao(id):
     conn = get_db_connection()
     cursor = conn.cursor()
+
     cursor.execute('SELECT * FROM FUNCAO WHERE id = ?', (id,))
     funcao = cursor.fetchone()
-    conn.close()
     
-    if funcao:
-        return render_template('funcao.html', action='Atualizar', funcao=funcao)
-    return redirect(url_for('list_funcoes'))
+    if not funcao:
+        conn.close()
+        return jsonify({'error': 'função não encontrada'}), 404
 
+    conn.close()
+    return jsonify({'funcao': funcao}), 201
 
 @app.route('/funcoes')
 @login_required
 def list_funcoes():
     conn = get_db_connection()
     cursor = conn.cursor()
+
     cursor.execute('SELECT * FROM FUNCAO')
     funcoes = cursor.fetchall()
-    conn.close()
-    
-    return render_template('lista_funcoes.html', funcoes=funcoes)
 
+    if not funcoes:
+        conn.close()
+        return jsonify({'message': 'Tabela de funções vazia'}), 200  # Retorna 200 OK se não houver funções
+    
+    funcoes_json = [
+        {
+            "id": funcao[0],           # Acesse os valores por índice
+            "descricao": funcao[1]
+        }
+        for funcao in funcoes
+    ]
+
+    conn.close()
+
+    return jsonify({'funcoes': funcoes_json}), 200
 
 @app.route('/evento/novo', methods=['GET','POST'])
 @login_required
 def add_evento():
-    if request.method == 'POST':
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        #data = request.get_json()
-        codigo = request.form.get('codigo')
-        descricao = request.form.get('descricao')
+    data = request.json
+    codigo = data.get('codigo')
+    descricao = data.get('descricao')
 
-        if not all([descricao]):
-            return jsonify({'error':'Dados incompletos'}), 404
-        
-        cursor.execute('INSERT INTO EVENTO (codigo, descricao) VALUES (?, ?)', (codigo, descricao,))
-        conn.commit()
-        conn.close()
+    if not descricao:
+        return jsonify({'error': 'Dados incompletos'}), 400
 
-        return redirect(url_for('list_eventos'))
-    
-    return render_template('evento.html', action='Cadastrar', evento={})
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('INSERT INTO EVENTO (codigo, descricao) VALUES (?, ?)', (codigo, descricao,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({'message': 'Evento criado com sucesso!'}), 201
 
 
 @app.route('/evento/<int:id>', methods=['POST'])
 @login_required
 def edit_evento(id):
+    data = request.json
+    codigo = data.get('codigo')
+    descricao = data.get('descricao')
+
     conn = get_db_connection()
     cursor = conn.cursor()
-    #data = request.get_json()
-
-    id = request.form.get('id')
-    codigo = request.form.get('codigo')
-    descricao = request.form.get('descricao')
 
     cursor.execute('SELECT * FROM EVENTO WHERE id = ?', (id,))
     evento = cursor.fetchone()
 
     if not evento:
+        conn.close()
         return jsonify({'error': 'Evento não encontrado'}), 404
 
     cursor.execute('UPDATE EVENTO SET codigo = ?, descricao = ? WHERE id = ?', (codigo, descricao, id))
     conn.commit()
     conn.close()
 
-    return redirect(url_for('list_eventos'))
+    return jsonify({'message': 'Evento atualizado com sucesso!'})
 
 
 @app.route('/evento/<int:id>/delete', methods=['POST'])
@@ -516,12 +596,12 @@ def delete_evento(id):
     if not evento:
         conn.close()
         return jsonify({'error': 'Evento não encontrado'}), 404
-    
+
     cursor.execute('DELETE FROM EVENTO WHERE id = ?', (id,))
     conn.commit()
     conn.close()
 
-    return redirect(url_for('list_eventos'))
+    return jsonify({'message': 'Evento deletado com sucesso!'})
 
 
 
@@ -530,104 +610,114 @@ def delete_evento(id):
 def view_evento(id):
     conn = get_db_connection()
     cursor = conn.cursor()
+
     cursor.execute('SELECT * FROM EVENTO WHERE id = ?', (id,))
     evento = cursor.fetchone()
+
+    if not evento:
+        conn.close()
+        return jsonify({'error': 'Evento não encontrado'}), 404
+    
     conn.close()
     
-    if evento:
-        return render_template('evento.html', action='Atualizar', evento=evento)
-    return redirect(url_for('list_eventos'))
-
+    return jsonify({'evento': evento}), 201
 
 @app.route('/eventos')
 @login_required
 def list_eventos():
     conn = get_db_connection()
     cursor = conn.cursor()
+
     cursor.execute('SELECT * FROM EVENTO')
     eventos = cursor.fetchall()
+
+    if not eventos:
+        conn.close()
+        return jsonify({'message': 'Tabela de eventos vazia'}), 200  
+
+    eventos_json = [
+        {
+            "id": evento[0],           
+            "codigo": evento[1],
+            "descricao": evento[2]
+        }
+        for evento in eventos
+    ]
+
     conn.close()
-    
-    return render_template('lista_eventos.html', eventos=eventos)
 
+    return jsonify({'eventos': eventos_json}), 200  
 
-
-@app.route('/ponto/cadastro', methods=['GET', 'POST'])
+@app.route('/ponto', methods=['GET', 'POST'])
 @login_required
 def add_ponto():
+    data = request.json
+    hora_entrada = data.get('hora_entrada')
+    hora_saida = data.get('hora_saida')
+    data_ponto = data.get('data')
+    nome_funcionario = data.get('funcionario') 
+    evento = data.get('evento')
+
+    if not all([hora_entrada, hora_saida, data_ponto, nome_funcionario, evento]):
+            return jsonify({'error': 'Dados incompletos'}), 404
+
     conn = get_db_connection()
     cursor = conn.cursor()
     
     cursor.execute('SELECT codigo, descricao FROM evento')
     eventos = cursor.fetchall()
-    
-    if request.method == 'POST':
-        hora_entrada = request.form.get('hora_entrada')
-        hora_saida = request.form.get('hora_saida')
-        data_ponto = request.form.get('data')
-        nome_funcionario = request.form.get('funcionario') 
-        evento = request.form.get('evento')
 
-        if not all([hora_entrada, hora_saida, data_ponto, nome_funcionario, evento]):
-            return jsonify({'error': 'Dados incompletos'}), 404
+    cursor.execute('SELECT matricula FROM FUNCIONARIO WHERE nome = ?', (nome_funcionario,))
+    resultado = cursor.fetchone()
         
-        cursor.execute('SELECT matricula FROM FUNCIONARIO WHERE nome = ?', (nome_funcionario,))
-        resultado = cursor.fetchone()
-        
-        if resultado:
-            matricula_funcionario = resultado['matricula']
-        else:
-            conn.close()
-            return jsonify({'error': 'Funcionário não encontrado'}), 404
+    if resultado:
+        matricula_funcionario = resultado['matricula']
+    else:
+        conn.close()
+        return jsonify({'error': 'Funcionário não encontrado'}), 404
 
-        try:
-            cursor.execute(
-                'INSERT INTO PONTO (funcionario, data, hora_entrada, hora_saida, evento) VALUES (?, ?, ?, ?, ?)',
-                (matricula_funcionario, data_ponto, hora_entrada, hora_saida, evento)
-            )
-            conn.commit()
-        except Exception as e:
-            conn.rollback()
-            conn.close()
-            return jsonify({'error': f'Erro ao registrar ponto: {str(e)}'}), 500
-        finally:
-            conn.close()
-
-        return redirect(url_for('list_pontos'))
-    
-    conn.close()
-    
-    return render_template('ponto.html', action='Cadastrar', ponto={}, eventos=eventos)
-
+    try:
+        cursor.execute(
+            'INSERT INTO PONTO (funcionario, data, hora_entrada, hora_saida, evento) VALUES (?, ?, ?, ?, ?)',
+            (matricula_funcionario, data_ponto, hora_entrada, hora_saida, evento)
+        )
+        conn.commit()
+        return jsonify({'message': 'Ponto registrado com sucesso!'}), 201
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        return jsonify({'error': f'Erro ao registrar ponto: {str(e)}'}), 500
+    finally:
+        conn.close()
 
 @app.route('/ponto/<int:id>', methods=['POST'])
 @login_required
 def edit_ponto(id):
+    data = request.json
+    #id = request.form.get('id')
+    hora_entrada = data.get('hora_entrada')
+    hora_saida = data.get('hora_saida')
+    data = data.get('data')
+    funcionario = data.get('funcionario')
+    evento = data.get('evento')
+
     conn = get_db_connection()
     cursor = conn.cursor()
-    #data = request.get_json()
-
-    id = request.form.get('id')
-    hora_entrada = request.form.get('hora_entrada')
-    hora_saida = request.form.get('hora_saida')
-    data = request.form.get('data')
-    funcionario = request.form.get('funcionario')
-    evento = request.form.get('evento')
 
     cursor.execute('SELECT * FROM EVENTO WHERE id = ?', (id,))
     ponto = cursor.fetchone()
 
     if not ponto:
+        conn.close()
         return jsonify({'error': 'Ponto não encontrado'}), 404
 
     cursor.execute('UPDATE PONTO SET funcionario = ?, data = ?, hora_entrada = ?, hora_saida = ?, evento = ? WHERE id = ?', (hora_entrada, hora_saida, data, funcionario, evento, id))
     conn.commit()
     conn.close()
 
-    return redirect(url_for('list_pontos'))
+    return jsonify({'message': 'Ponto atualizado com sucesso!'})
 
-
-@app.route('/ponto/<int:id>/delete', methods=['POST'])
+@app.route('/ponto/<int:id>/delete', methods=['DELETE'])
 @login_required
 def delete_ponto(id):
     conn = get_db_connection()
@@ -644,24 +734,41 @@ def delete_ponto(id):
     conn.commit()
     conn.close()
 
-    return redirect(url_for('list_pontos'))
-
-
+    return jsonify({'message': 'Ponto deletado com sucesso!'})
 
 @app.route('/ponto/<int:id>', methods=['GET'])
 @login_required
 def view_ponto(id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM PONTO WHERE id = ?', (id,))
-    ponto = cursor.fetchone()
-    conn.close()
     
-    if ponto:
-        return render_template('ponto.html', action='Atualizar', ponto=ponto)
-    return redirect(url_for('list_pontos'))
+    cursor.execute('''
+        SELECT p.id, f.nome, p.data, p.hora_entrada, p.hora_saida, e.descricao
+        FROM PONTO p
+        JOIN EVENTO e ON p.evento = e.codigo
+        JOIN FUNCIONARIO f ON p.funcionario = f.matricula
+        and p.id = ?
+    ''', (id,))
 
-from flask import Flask, request, jsonify
+    ponto = cursor.fetchone()
+    
+    if not ponto:  # Caso não haja o ponto no banco de dados
+        conn.close()
+        return jsonify({'error': 'Ponto não encontrado'}), 404
+    
+    ponto_json = [
+        {
+            "id": ponto[0],
+            "nome": ponto[1],
+            "data": ponto[2],
+            "hora_entrada": ponto[3],
+            "hora_saida": ponto[4],
+            "evento": ponto[5]
+        }
+    ]
+
+    return jsonify({"pontos": ponto_json}), 200
+
 
 @app.route('/ponto/buscar')
 @login_required
@@ -699,93 +806,109 @@ def list_pontos():
     cursor = conn.cursor()
 
     pontos = []
-    error = None
+    
+    try:
+        if request.method == 'POST':
+            data = request.json  # Recebe JSON corretamente
+            filtro = data.get('filtro')
+            filtro_evento = data.get('filtro_evento')
 
-    if request.method == 'POST':
-        filtro = request.form.get('filtro') 
-        filtro_evento = request.form.get('filtro_evento')
+            query = '''
+                SELECT p.id, f.nome, p.data, p.hora_entrada, p.hora_saida, e.descricao
+                FROM PONTO p
+                JOIN EVENTO e ON p.evento = e.codigo
+                JOIN FUNCIONARIO f ON p.funcionario = f.matricula
+                WHERE 1 = 1
+            '''
+            params = []
 
-        query = '''
-            SELECT p.id, f.nome, p.data, p.hora_entrada, p.hora_saida, e.descricao
-            FROM PONTO p
-            JOIN EVENTO e ON p.evento = e.codigo
-            JOIN FUNCIONARIO f ON p.funcionario = f.matricula
-            WHERE 1 = 1
-        '''
-        params = []
+            if filtro:
+                query += ' AND (f.matricula = ? OR f.nome LIKE ?)'
+                params.extend([filtro, f"%{filtro}%"])
 
-        if filtro:
-            query += ' AND (f.matricula = ? OR f.nome LIKE ?)'
-            params.extend([filtro, f"%{filtro}%"])
+            if filtro_evento:
+                query += ' AND (e.codigo = ? OR e.descricao LIKE ?)'
+                params.extend([filtro_evento, f"%{filtro_evento}%"])
 
-        if filtro_evento:
-            query += ' AND (e.codigo = ? OR e.descricao LIKE ?)'
-            params.extend([filtro_evento, f"%{filtro_evento}%"])
-
-        if params:
             cursor.execute(query, params)
-            pontos = cursor.fetchall()
         else:
-            error = "Por favor, informe ao menos um filtro válido."
-    else:
-        cursor.execute('''
-            SELECT p.id, f.nome, p.data, p.hora_entrada, p.hora_saida, e.descricao
-            FROM PONTO p
-            JOIN EVENTO e ON p.evento = e.codigo
-            JOIN FUNCIONARIO f ON p.funcionario = f.matricula
-        ''')
+            cursor.execute('''
+                SELECT p.id, f.nome, p.data, p.hora_entrada, p.hora_saida, e.descricao
+                FROM PONTO p
+                JOIN EVENTO e ON p.evento = e.codigo
+                JOIN FUNCIONARIO f ON p.funcionario = f.matricula
+            ''')
+
         pontos = cursor.fetchall()
+        
+        pontos_json = [
+            {
+                "id": row[0],
+                "nome": row[1],
+                "data": row[2],
+                "hora_entrada": row[3],
+                "hora_saida": row[4],
+                "evento": row[5]
+            }
+            for row in pontos
+        ]
 
-    conn.close()
+        return jsonify({"pontos": pontos_json}), 200
 
-    return render_template('lista_pontos.html', pontos=pontos, error=error)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        cursor.close()
+        conn.close()
 
 
-@app.route('/usuario', methods=['GET','POST'])
+
+@app.route('/usuario', methods=['POST'])
 @login_required
 def add_usuario():
-    if request.method == 'POST':
-        nome = request.form.get('nome')
-        senha = request.form.get('senha')
+    data = request.json
+    nome = data.get('nome')
+    senha = data.get('senha')
 
-        if not nome or not senha:
-            flash("Nome e senha são obrigatórios", "danger")
-            return redirect(url_for('add_usuario')) 
+    if not nome or not senha:
+        return jsonify({"error":"Nome e senha sao obrigatorios"}), 400
+    
+    if senha.strip() == '':
+        return jsonify({"error":"Senha nao pode ser vazia"}), 400
+    
+    try:
+        hashed_password = generate_password_hash(senha)
+    except Exception as e:
+        return jsonify({"error": f"Erro ao criptografar a senha: {e}"}), 500
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
-        if senha is None or senha.strip() == '':
-            flash("Senha não pode ser vazia", "danger")
-            return redirect(url_for('add_usuario'))  
-
-        try:
-            hashed_password = generate_password_hash(senha)
-        except Exception as e:
-            flash(f"Erro ao criptografar a senha: {e}", "danger")
-            return redirect(url_for('add_usuario'))
-
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        try:
-            cursor.execute('''
-                INSERT INTO usuario (nome, senha) VALUES (?, ?)
-            ''', (nome, hashed_password))
-
-            conn.commit()
-        except Exception as e:
-            conn.rollback()
-            flash(f"Erro ao cadastrar o usuário: {e}", "danger")
-        finally:
-            cursor.close()
-            conn.close()
-
-        flash("Usuário cadastrado com sucesso!", "success")
-        return redirect(url_for('listar_usuarios')) 
-    return render_template('add_usuario.html')
+    try:
+        cursor.execute('INSERT INTO usuario (nome, senha) VALUES (?, ?)', (nome, hashed_password))
+        conn.commit()
+        return jsonify({"message": "Usuario cadastrado com sucesso!"}), 201
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": f"Erro ao cadastrar o usuario: {e}"}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 
 @app.route('/usuario/<int:id>', methods=['GET','POST'])
 @login_required
 def edit_usuario(id):
+    data = request.json
+    nome = data.get('nome')
+    senha = data.get('senha')
+
+    if not nome or not senha:
+        return jsonify({"error": "Nome e senha sao obrigatorios"}), 400
+    
+    hashed_password = generate_password_hash(senha)
+
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -805,48 +928,47 @@ def edit_usuario(id):
         cursor.close()
         conn.close()
 
-        return redirect(url_for('listar_usuarios'))
-    
-    cursor.execute('select * from usuario where id = ?', (id,))
-    usuario = cursor.fetchone()
+        return jsonify({"message": "Usuario atualizado com sucesso!"})
 
-    cursor.close()
-    conn.close()
-
-    return render_template('usuario_form.html',action='Atualizar', usuario=usuario)
-
-
-@app.route('/usuario/delete/<int:id>', methods=['POST'])
+@app.route('/usuario/delete/<int:id>', methods=['DELETE'])
 @login_required
 def delete_usuario(id):
     conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute('delete from usuario where id = ?', (id,))
+    conn.commit()
 
     cursor.close()
     conn.close()
 
-    return redirect(url_for('listar_usuarios'))
+    return jsonify({"message": "Usuario deletado com sucesso!"})
 
-
-@app.route('/usuarios')
+@app.route('/usuarios', methods=['GET'])
 @login_required
 def listar_usuarios():
     conn = get_db_connection()
     cursor = conn.cursor()
+
     cursor.execute('SELECT * FROM usuario')
     usuarios = cursor.fetchall()
+
     cursor.close()
     conn.close()
-    return render_template('listar_usuarios.html', usuarios=usuarios)
+
+    usuarios_json = [{"id": u['id'], "nome": u['nome']} for u in usuarios]
+
+    return jsonify({"usuarios": usuarios_json})
 
 @app.route('/login', methods=['GET','POST'])
 def login():
     if request.method == 'POST':
-        nome = request.form['nome']
-        senha = request.form['senha']
+        nome = request.json.get('nome')
+        senha = request.json.get('senha')
 
+        if not nome or not senha:
+            return jsonify({"error":"Nome e senha sao obrigatorios"}), 400
+        
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -859,11 +981,11 @@ def login():
         if usuario and check_password_hash(usuario['senha'], senha):
             session['user_id'] = usuario['id']
             session['user_nome'] = usuario['nome']
-            return redirect(url_for('index'))
+            return jsonify({"message":"Login bem-sucedido", "user_id": usuario['id'], "user_name": usuario['nome']})
         else:
-            flash('Usuario ou senha incorretos!', 'danger')
+            return jsonify({"error":"Usuario ou senha incorretos"}), 401
 
-    return render_template('login.html')
+    return jsonify({"error":"Metodo nao permitido"}), 405
 
 def get_matricula_by_nome(nome):
     conn = get_db_connection()
