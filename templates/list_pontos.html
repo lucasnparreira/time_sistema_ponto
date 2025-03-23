@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Pontos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    {% include 'menu.html' %}
+    <div class="container-relatorios">
+    <h2>Lista de Pontos</h2>
+    <br><br>
+    {% if pontos %}
+        <ul>
+            {% for ponto in pontos %}
+                <li>
+                    <strong>ID:</strong> {{ ponto.id }} <br>
+                    <strong>Hora de Entrada:</strong> {{ ponto.hora_entrada }} <br>
+                    <strong>Hora de Saída:</strong> {{ ponto.hora_saida }} <br>
+                    <strong>Data:</strong> {{ ponto.data }} <br>
+                    <strong>Funcionário:</strong> {{ ponto.funcionario }} <br>
+                    <strong>Evento:</strong> {{ ponto.evento }} <br>
+                    <a href="/ponto/{{ ponto.id }}">Ver Detalhes</a> | 
+                    <a href="/ponto/{{ ponto.id }}/edit">Editar</a> | 
+                    <form action="/ponto/{{ ponto.id }}/delete" method="POST" style="display:inline;">
+                        <button type="submit" onclick="return confirm('Tem certeza que deseja deletar este ponto?')">Deletar</button>
+                    </form>
+                </li>
+                <a href="/ponto">Registrar Novo Ponto</a>
+            {% endfor %}
+        </ul>
+        <div>
+    {% else %}
+        <p>Nenhum ponto encontrado.</p>
+    {% endif %}
+</body>
+</html>

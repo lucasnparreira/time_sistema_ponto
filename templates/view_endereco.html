@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Endereço</title>
+</head>
+<body>
+    <h1>Detalhes do Endereço</h1>
+
+    <p><strong>Rua:</strong> {{ endereco.rua }}</p>
+    <p><strong>Bairro:</strong> {{ endereco.bairro }}</p>
+    <p><strong>Cidade:</strong> {{ endereco.cidade }}</p>
+    <p><strong>País:</strong> {{ endereco.pais }}</p>
+
+    <a href="{{ url_for('edit_endereco', id=endereco.id) }}">Editar</a>
+    <a href="{{ url_for('delete_endereco', id=endereco.id) }}">Excluir</a>
+
+</body>
+</html>

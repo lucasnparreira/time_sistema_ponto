@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Função</title>
+</head>
+<body>
+    <h1>Editar Função</h1>
+    <form action="/funcao/{{ funcao.id }}" method="POST">
+        <input type="hidden" name="_method" value="PUT">
+        <label for="descricao">Descrição:</label>
+        <input type="text" id="descricao" name="descricao" value="{{ funcao.descricao }}" required>
+        <button type="submit">Atualizar Função</button>
+    </form>
+
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
+</body>
+</html>

@@ -1,106 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Endereços</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            margin: 0;
-            background-color: #f4f4f4;
-        }
-        .menu-container {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-        }
-        .container {
-            width: 80%;
-            max-width: 800px;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin-top: 70px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        table, th, td {
-            border: 1px solid #ccc;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-        th {
-            background-color: #007bff;
-            color: white;
-        }
-        button {
-            padding: 5px 10px;
-            margin-right: 5px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .action-buttons {
-            display: flex;
-        }
-    </style>
 </head>
 <body>
-    {% include 'menu.html' %}
-   
+    <h1>Lista de Endereços</h1>
 
-    <div class="container">
-        <h2>Lista de Endereços</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Rua</th>
-                    <th>Bairro</th>
-                    <th>Cidade</th>
-                    <th>País</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for endereco in enderecos %}
-                <tr>
-                    <td>{{ endereco[0] }}</td>
-                    <td>{{ endereco[1] }}</td>
-                    <td>{{ endereco[2] }}</td>
-                    <td>{{ endereco[3] }}</td>
-                    <td>{{ endereco[4] }}</td>
-                    <td class="action-buttons">
-                        <!-- <a href="{{ url_for('view_endereco', id=endereco[0]) }}"><button>Visualizar</button></a> -->
-                        <a href="{{ url_for('edit_endereco', id=endereco[0]) }}"><button>Editar</button></a>
-                        <form method="POST" action="{{ url_for('delete_endereco', id=endereco[0]) }}" style="display:inline;">
-                            <button type="submit" onclick="return confirm('Tem certeza que deseja remover este endereço?')">Remover</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <a href="{{ url_for('add_endereco') }}"><button>Adicionar Novo Endereço</button></a>
-    </div>
+    {% if mensagem %}
+        <p>{{ mensagem }}</p>
+    {% endif %}
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-    
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Rua</th>
+                <th>Bairro</th>
+                <th>Cidade</th>
+                <th>País</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for endereco in enderecos %}
+            <tr>
+                <td>{{ endereco.rua }}</td>
+                <td>{{ endereco.bairro }}</td>
+                <td>{{ endereco.cidade }}</td>
+                <td>{{ endereco.pais }}</td>
+                <td>
+                    <a href="{{ url_for('view_endereco', id=endereco.id) }}">Ver</a>
+                    <a href="{{ url_for('edit_endereco', id=endereco.id) }}">Editar</a>
+                    <a href="{{ url_for('delete_endereco', id=endereco.id) }}">Excluir</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
 </body>
 </html>

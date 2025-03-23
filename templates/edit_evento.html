@@ -1,0 +1,22 @@
+<!-- form_edit_evento.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Evento</title>
+</head>
+<body>
+    <h1>Editar Evento</h1>
+    <form action="/evento/{{ evento.id }}" method="POST">
+        <input type="hidden" name="_method" value="PUT">
+        <label for="codigo">Código do Evento:</label><br>
+        <input type="text" id="codigo" name="codigo" value="{{ evento.codigo }}" required><br><br>
+        <label for="descricao">Descrição:</label><br>
+        <input type="text" id="descricao" name="descricao" value="{{ evento.descricao }}" required><br><br>
+        <button type="submit">Atualizar Evento</button>
+    </form>
+    <br>
+    <a href="/eventos">Voltar para lista de eventos</a>
+</body>
+</html>

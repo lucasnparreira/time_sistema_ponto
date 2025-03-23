@@ -3,10 +3,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import sqlite3
 import os
-
+from flask_cors import CORS
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = os.urandom(24)
+
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 def get_db_connection():
     conn = sqlite3.connect('app.db')
@@ -27,14 +29,13 @@ def login_required(f):
 
 
 @app.route('/funcionario', methods=['POST', 'GET'])
-@login_required
 def add_funcionario():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    #buscar funcionario por matricula ou nome
+    # Buscar funcionário por matrícula ou nome (GET)
     if request.method == 'GET':
-        search = request.form.get('search')
+        search = request.args.get('search')  # Alterado para pegar da query string
         if search:
             cursor.execute('SELECT * FROM FUNCIONARIO WHERE matricula = ? OR nome = ?', (search, search))
             funcionario = cursor.fetchone()
@@ -43,15 +44,17 @@ def add_funcionario():
                 return jsonify({'funcionario': funcionario}), 200
             else:
                 conn.close()
-                return jsonify({'error':'Funcionário não encontrado.'}), 404
+                return jsonify({'error': 'Funcionário não encontrado.'}), 404
 
+    # Adicionar funcionário (POST)
     if request.method == 'POST':
-        data = request.json 
+        data = request.json
         
         print("Dados recebidos:", data)
         
+        # Verificar se matrícula e nome são obrigatórios
         if not data.get('matricula') or not data.get('nome'):
-            return jsonify("Matrícula e nome são obrigatórios.")
+            return jsonify({"error": "Matrícula e nome são obrigatórios."}), 400  # Status 400 Bad Request
         
         query = '''
             INSERT INTO FUNCIONARIO (matricula, nome, funcao, data_inicio, data_termino, 
@@ -67,15 +70,16 @@ def add_funcionario():
         try:
             cursor.execute(query, values)
             conn.commit()
-            return jsonify({'message': 'Funcionario cadastrado com sucesso!'}), 201
+            return jsonify({'message': 'Funcionário cadastrado com sucesso!'}), 201  # Status 201 Created
         except Exception as e:
-            return jsonify({'error': str(e)}), 500
+            return jsonify({'error': str(e)}), 500  # Status 500 Internal Server Error
         finally:
             cursor.close()
             conn.close()
 
+
 @app.route('/funcionario/<int:matricula>', methods=['DELETE'])
-@login_required
+# @login_required
 def delete_funcionario(matricula):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -98,7 +102,7 @@ def delete_funcionario(matricula):
 
 
 @app.route('/funcionario/<int:matricula>', methods=['PUT'])
-@login_required
+# @login_required
 def update_funcionario(matricula):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -136,7 +140,7 @@ def update_funcionario(matricula):
 
 
 @app.route('/funcionario/<int:matricula>', methods=['GET'])
-@login_required
+# @login_required
 def get_funcionario(matricula):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -171,8 +175,8 @@ def get_funcionario(matricula):
     return jsonify(funcionario_data), 200
 
 
-@app.route('/funcionarios')
-@login_required
+@app.route('/funcionarios', methods=['GET'])
+# @login_required
 def list_funcionarios():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -209,7 +213,7 @@ def list_funcionarios():
     return jsonify({'funcionarios': funcionarios_json}), 200
 
 @app.route('/endereco', methods=['GET','POST'])
-@login_required
+# @login_required
 def add_endereco():
     data = request.json
     rua = data.get('rua')
@@ -231,7 +235,7 @@ def add_endereco():
 
 
 @app.route('/endereco/<int:id>', methods=['PUT'])
-@login_required
+# @login_required
 def edit_endereco(id):
     data = request.json
     rua = data.get('rua')
@@ -257,7 +261,7 @@ def edit_endereco(id):
 
 
 @app.route('/endereco/<int:id>', methods=['POST'])
-@login_required
+# @login_required
 def delete_endereco(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -276,7 +280,7 @@ def delete_endereco(id):
 
 
 @app.route('/endereco/<int:id>', methods=['GET'])
-@login_required
+# @login_required
 def view_endereco(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -294,7 +298,7 @@ def view_endereco(id):
 
 
 @app.route('/enderecos', methods=['GET'])
-@login_required
+# @login_required
 def list_enderecos():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -328,7 +332,7 @@ def list_enderecos():
     return jsonify({'enderecos': enderecos_json}), 200
 
 @app.route('/departamento', methods=['POST'])
-@login_required
+# @login_required
 def add_departamento():
     data = request.json 
     descricao = data.get('descricao')
@@ -346,7 +350,7 @@ def add_departamento():
     return jsonify({'message': 'Departamento criado com sucesso!'}), 201
     
 @app.route('/departamento/<int:id>', methods=['PUT'])
-@login_required
+# @login_required
 def edit_departamento(id):
     data = request.json
     descricao = data.get('descricao')
@@ -369,7 +373,7 @@ def edit_departamento(id):
 
 
 @app.route('/departamento/<int:id>/delete', methods=['POST'])
-@login_required
+# @login_required
 def delete_departamento(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -391,7 +395,7 @@ def delete_departamento(id):
 
 
 @app.route('/departamento/<int:id>', methods=['GET'])
-@login_required
+# @login_required
 def view_departamento(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -408,7 +412,7 @@ def view_departamento(id):
 
 
 @app.route('/departamentos')
-@login_required
+# @login_required
 def list_departamentos():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -437,7 +441,7 @@ def list_departamentos():
 
 
 @app.route('/funcao', methods=['POST'])
-@login_required
+# @login_required
 def add_funcao():
     data = request.json
     descricao = data.get('descricao')
@@ -455,7 +459,7 @@ def add_funcao():
     return jsonify({'message': 'Funcao criada com sucesso!'}), 201
 
 @app.route('/funcao/<int:id>', methods=['PUT'])
-@login_required
+# @login_required
 def edit_funcao(id):
     data = request.json
     #id = request.form.get('id')
@@ -479,7 +483,7 @@ def edit_funcao(id):
 
 
 @app.route('/funcao/<int:id>/delete', methods=['POST'])
-@login_required
+# @login_required
 def delete_funcao(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -500,7 +504,7 @@ def delete_funcao(id):
 
 
 @app.route('/funcao/<int:id>', methods=['GET'])
-@login_required
+# @login_required
 def view_funcao(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -516,7 +520,7 @@ def view_funcao(id):
     return jsonify({'funcao': funcao}), 201
 
 @app.route('/funcoes')
-@login_required
+# @login_required
 def list_funcoes():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -541,7 +545,7 @@ def list_funcoes():
     return jsonify({'funcoes': funcoes_json}), 200
 
 @app.route('/evento/novo', methods=['GET','POST'])
-@login_required
+# @login_required
 def add_evento():
     data = request.json
     codigo = data.get('codigo')
@@ -561,7 +565,7 @@ def add_evento():
 
 
 @app.route('/evento/<int:id>', methods=['PUT'])
-@login_required
+# @login_required
 def edit_evento(id):
     data = request.json
     codigo = data.get('codigo')
@@ -585,7 +589,7 @@ def edit_evento(id):
 
 
 @app.route('/evento/<int:id>/delete', methods=['POST'])
-@login_required
+# @login_required
 def delete_evento(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -606,7 +610,7 @@ def delete_evento(id):
 
 
 @app.route('/evento/<int:id>', methods=['GET'])
-@login_required
+# @login_required
 def view_evento(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -622,8 +626,8 @@ def view_evento(id):
     
     return jsonify({'evento': evento}), 201
 
-@app.route('/eventos')
-@login_required
+@app.route('/eventos', methods=['GET'])
+# @login_required
 def list_eventos():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -649,7 +653,7 @@ def list_eventos():
     return jsonify({'eventos': eventos_json}), 200  
 
 @app.route('/ponto', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def add_ponto():
     data = request.json
     hora_entrada = data.get('hora_entrada')
@@ -691,7 +695,7 @@ def add_ponto():
         conn.close()
 
 @app.route('/ponto/<int:id>', methods=['PUT'])
-@login_required
+# @login_required
 def edit_ponto(id):
     data = request.json
     #id = request.form.get('id')
@@ -718,7 +722,7 @@ def edit_ponto(id):
     return jsonify({'message': 'Ponto atualizado com sucesso!'})
 
 @app.route('/ponto/<int:id>/delete', methods=['DELETE'])
-@login_required
+# @login_required
 def delete_ponto(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -737,7 +741,7 @@ def delete_ponto(id):
     return jsonify({'message': 'Ponto deletado com sucesso!'})
 
 @app.route('/ponto/<int:id>', methods=['GET'])
-@login_required
+# @login_required
 def view_ponto(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -770,8 +774,8 @@ def view_ponto(id):
     return jsonify({"pontos": ponto_json}), 200
 
 
-@app.route('/ponto/buscar')
-@login_required
+@app.route('/ponto/buscar', methods=['GET'])
+# @login_required
 def buscar_funcionario():
     query = request.args.get('query')
     
@@ -800,7 +804,7 @@ def buscar_funcionario():
         return jsonify({"error": "Funcionário não encontrado"}), 404
 
 @app.route('/pontos', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def list_pontos():
     conn = get_db_connection()
     cursor = conn.cursor()

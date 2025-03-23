@@ -3,264 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Funcionários</title>
+    <title>{% if funcionario %}Editar Funcionário{% else %}Detalhes do Funcionário{% endif %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
-        
-    </style>
 </head>
 <body>
     {% include 'menu.html' %}
-   
 
-    <div class="container">
-        <form method="POST" action="/funcionario">
-            <label for="search"> Buscar Funcionario por matricula ou nome:</label>
-            <input type="text" id="search" name="search" placeholder="Informe a matricula ou nome">
-            <button type="submit">Buscar</button>
-            <button type="button" onclick="limparForm()">Limpar</button>
-        </form>
+    <div class="container-relatorios">
+        {% if funcionario %}
+            <h2>Editar Funcionário: {{ funcionario.nome }}</h2>
+        {% else %}
+            <h2>Detalhes do Funcionário: {{ funcionario.nome }}</h2>
+        {% endif %}
 
-        <h3>Gerenciar Funcionário</h3>
-        <form id="funcionario-form" method="POST" onsubmit="validarCPF()">
-            <label for="matricula">Matrícula:</label>
-            <input type="number" id="matricula" name="matricula" value="{{ funcionario[0] if funcionario else ''}}"placeholder="Informe a matricula do colaborador" required>
+        <!-- Exibe mensagens de erro, se houver -->
+        {% if error %}
+            <div class="error-message">{{ error }}</div>
+        {% endif %}
 
+        <form method="POST" action="{{ url_for('update_funcionario', matricula=funcionario.matricula) }}">
             <label for="nome">Nome:</label>
-            <input type="text" id="nome" name="nome" value="{{ funcionario[1] if funcionario else '' }}" placeholder="Informe o nome do colaborador" required>
+            <input type="text" id="nome" name="nome" value="{{ funcionario.nome }}" required>
 
             <label for="funcao">Função:</label>
-            <input type="text" id="funcao" name="funcao" value="{{ funcionario[2] if funcionario else '' }}" placeholder="Informe a função" required>
+            <input type="text" id="funcao" name="funcao" value="{{ funcionario.funcao }}" required>
 
             <label for="data_inicio">Data de Início:</label>
-            <input type="date" id="data_inicio" name="data_inicio" value="{{ funcionario[3] if funcionario else '' }}" required>
+            <input type="date" id="data_inicio" name="data_inicio" value="{{ funcionario.data_inicio }}" required>
 
             <label for="data_termino">Data de Término:</label>
-            <input type="date" id="data_termino" name="data_termino" value="{{ funcionario[4] if funcionario else '' }}">
+            <input type="date" id="data_termino" name="data_termino" value="{{ funcionario.data_termino }}">
 
             <label for="departamento">Departamento:</label>
-            <input type="text" id="departamento" name="departamento" value="{{ funcionario[5] if funcionario else '' }}" placeholder="Informe qual o departamento" required>
+            <input type="text" id="departamento" name="departamento" value="{{ funcionario.departamento }}">
 
             <label for="gerente">Gerente:</label>
-            <input type="text" id="gerente" name="gerente" value="{{ funcionario[6] if funcionario else '' }}" placeholder="Informe qual o nome do gerente">
+            <input type="text" id="gerente" name="gerente" value="{{ funcionario.gerente }}">
 
             <label for="endereco">Endereço:</label>
-            <input type="text" id="endereco" name="endereco" value="{{ funcionario[7] if funcionario else '' }}" placeholder="Selecione / cadastre o endereço" autocomplete="off">
-            <ul id="enderecos-list" style="display: none;"></ul>
+            <input type="text" id="endereco" name="endereco" value="{{ funcionario.endereco }}">
 
             <label for="telefone">Telefone:</label>
-            <input type="text" id="telefone" name="telefone" value="{{ funcionario[8] if funcionario else '' }}" placeholder="Informe o telefone (xx) 9xxxx-xxxx" required>
+            <input type="text" id="telefone" name="telefone" value="{{ funcionario.telefone }}">
 
             <label for="cpf">CPF:</label>
-            <input type="text" id="cpf" name="cpf" value="{{ funcionario[9] if funcionario else '' }}" placeholder="CPF - inserir apenas os numeros" required>
-            <span id="cpf-erro" style="color: red; display: none;">CPF inválido. Verifique e tente novamente.</span>
+            <input type="text" id="cpf" name="cpf" value="{{ funcionario.cpf }}">
 
             <label for="rg">RG:</label>
-            <input type="text" id="rg" name="rg" value="{{ funcionario[10] if funcionario else '' }}" placeholder="Informe o numero da RG" required>
+            <input type="text" id="rg" name="rg" value="{{ funcionario.rg }}">
 
             <label for="banco">Banco:</label>
-            <input type="text" id="banco" name="banco" value="{{ funcionario[11] if funcionario else '' }}" required>
+            <input type="text" id="banco" name="banco" value="{{ funcionario.banco }}">
 
             <label for="agencia">Agência:</label>
-            <input type="text" id="agencia" name="agencia" value="{{ funcionario[12] if funcionario else '' }}" required>
+            <input type="text" id="agencia" name="agencia" value="{{ funcionario.agencia }}">
 
             <label for="conta_corrente">Conta Corrente:</label>
-            <input type="text" id="conta_corrente" name="conta_corrente" value="{{ funcionario[13] if funcionario else '' }}" required>
+            <input type="text" id="conta_corrente" name="conta_corrente" value="{{ funcionario.conta_corrente }}">
 
-            <!-- <button type="button" id="buscar-funcionario">Buscar Funcionário</button> -->
-            <button type="submit" id="salvar-funcionario">Adicionar Funcionário</button>
-            <button type="button" id="atualizar-funcionario">Atualizar Funcionário</button>
+            <button type="submit">Atualizar Funcionário</button>
         </form>
+
+        <a href="{{ url_for('list_funcionarios') }}"><button>Voltar para Lista de Funcionários</button></a>
     </div>
 
-    <script src="/static/script.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Função para salvar o funcionário
-            const salvarButton = document.getElementById('salvar-funcionario');
-            
-            if (salvarButton) {
-                salvarButton.addEventListener('click', async function() {
-                    const cpf = document.getElementById('cpf').value;
-
-                    if (!validarCPF(cpf)) {
-                        alert("Por favor, verifique o cpf informado.");
-                        return;
-                    }
-                    
-                    const funcionarioData = {
-                        matricula: document.getElementById('matricula').value,
-                        nome: document.getElementById('nome').value,
-                        funcao: document.getElementById('funcao').value,
-                        data_inicio: document.getElementById('data_inicio').value,
-                        data_termino: document.getElementById('data_termino').value,
-                        departamento: document.getElementById('departamento').value,
-                        gerente: document.getElementById('gerente').value,
-                        endereco: document.getElementById('endereco').value,
-                        telefone: document.getElementById('telefone').value,
-                        cpf: document.getElementById('cpf').value,
-                        rg: document.getElementById('rg').value,
-                        banco: document.getElementById('banco').value,
-                        agencia: document.getElementById('agencia').value,
-                        conta_corrente: document.getElementById('conta_corrente').value
-                    };
-    
-                    try {
-                        const response = await fetch(`/funcionario`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(funcionarioData)
-                        });
-    
-                        const result = await response.json();
-                        // alert(result.message);
-                    } catch (error) {
-                        console.error('Erro ao adicionar funcionário:', error);
-                        alert('Erro ao adicionar funcionário.');
-                    }
-                });
-            }
-    
-            // Função para buscar o funcionário
-            const buscarButton = document.getElementById('buscar-funcionario');
-            if (buscarButton) {
-                buscarButton.addEventListener('click', function() {
-                    const matricula = document.getElementById('search').value;
-                    if (!matricula) {
-                        alert('Por favor, insira a matrícula ou nome.');
-                        return;
-                    }
-    
-                    fetch(`/funcionario/${matricula}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.message) {
-                                alert(data.message);
-                            } else {
-                                document.getElementById('matricula').value = data.matricula;
-                                document.getElementById('nome').value = data.nome;
-                                document.getElementById('funcao').value = data.funcao;
-                                document.getElementById('data_inicio').value = data.data_inicio;
-                                document.getElementById('data_termino').value = data.data_termino || '';
-                                document.getElementById('departamento').value = data.departamento;
-                                document.getElementById('gerente').value = data.gerente;
-                                document.getElementById('endereco').value = data.endereco;
-                                document.getElementById('telefone').value = data.telefone;
-                                document.getElementById('cpf').value = data.cpf;
-                                document.getElementById('rg').value = data.rg;
-                                document.getElementById('banco').value = data.banco;
-                                document.getElementById('agencia').value = data.agencia;
-                                document.getElementById('conta_corrente').value = data.conta_corrente;
-                            }
-                        })
-                        .catch(error => console.error('Erro ao buscar funcionário:', error));
-                });
-            }
-    
-            // Função para atualizar o funcionário
-            const atualizarButton = document.getElementById('atualizar-funcionario');
-            if (atualizarButton) {
-                atualizarButton.addEventListener('click', async function() {
-                    const matricula = document.getElementById('matricula').value;
-                    if (!matricula) {
-                        alert('Por favor, informe a matrícula do funcionário.');
-                        return;
-                    }
-    
-                    const funcionarioData = {
-                        nome: document.getElementById('nome').value,
-                        funcao: document.getElementById('funcao').value,
-                        data_inicio: document.getElementById('data_inicio').value,
-                        data_termino: document.getElementById('data_termino').value,
-                        departamento: document.getElementById('departamento').value,
-                        gerente: document.getElementById('gerente').value,
-                        endereco: document.getElementById('endereco').value,
-                        telefone: document.getElementById('telefone').value,
-                        cpf: document.getElementById('cpf').value,
-                        rg: document.getElementById('rg').value,
-                        banco: document.getElementById('banco').value,
-                        agencia: document.getElementById('agencia').value,
-                        conta_corrente: document.getElementById('conta_corrente').value
-                    };
-    
-                    try {
-                        const response = await fetch(`/funcionario/${matricula}`, {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(funcionarioData)
-                        });
-    
-                        const result = await response.json();
-                        alert(result.message);
-                    } catch (error) {
-                        console.error('Erro ao atualizar funcionário:', error);
-                        alert('Erro ao atualizar funcionário.');
-                    }
-                });
-            }
-    
-            // Função para validar CPF
-            function validarCPF() {
-                const cpf = document.getElementById('cpf').value;
-                const cpfErro = document.getElementById('cpf-erro');
-    
-                // Remove caracteres não numéricos do CPF
-                const cpfLimpo = cpf.replace(/\D/g, '');
-                
-                if (!cpfValido(cpfLimpo)) {
-                    cpfErro.style.display = 'inline';
-                    return false;
-                }
-    
-                cpfErro.style.display = 'none';
-                return true;
-            }
-    
-            // Função para verificar se o CPF é válido
-            function cpfValido(cpf) {
-                if (cpf.length !== 11 || /^(\d)\1*$/.test(cpf)) {
-                    return false;
-                }
-                
-                let soma = 0;
-                for (let i = 0; i < 9; i++) {
-                    soma += parseInt(cpf.charAt(i)) * (10 - i);
-                }
-                let resto = (soma * 10) % 11;
-                if (resto === 10 || resto === 11) resto = 0;
-                if (resto !== parseInt(cpf.charAt(9))) return false;
-                
-                soma = 0;
-                for (let i = 0; i < 10; i++) {
-                    soma += parseInt(cpf.charAt(i)) * (11 - i);
-                }
-                resto = (soma * 10) % 11;
-                if (resto === 10 || resto === 11) resto = 0;
-                return resto === parseInt(cpf.charAt(10));
-            }
-        });
-
-        function limparForm() {
-            document.getElementById('matricula').value = '';
-            document.getElementById('nome').value = '';
-            document.getElementById('funcao').value = '';
-            document.getElementById('data_inicio').value = '';
-            document.getElementById('data_termino').value = '';
-            document.getElementById('departamento').value = '';
-            document.getElementById('gerente').value = '';
-            document.getElementById('endereco').value = '';
-            document.getElementById('telefone').value = '';
-            document.getElementById('cpf').value = '';
-            document.getElementById('rg').value = '';
-            document.getElementById('banco').value = '';
-            document.getElementById('agencia').value = '';
-            document.getElementById('conta_corrente').value = '';
-        }
-    </script>
-    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

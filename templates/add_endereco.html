@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar Endereço</title>
+</head>
+<body>
+    <h1>Adicionar Endereço</h1>
+
+    <form action="{{ url_for('add_endereco') }}" method="POST">
+        <label for="rua">Rua:</label>
+        <input type="text" id="rua" name="rua" required><br><br>
+
+        <label for="bairro">Bairro:</label>
+        <input type="text" id="bairro" name="bairro" required><br><br>
+
+        <label for="cidade">Cidade:</label>
+        <input type="text" id="cidade" name="cidade" required><br><br>
+
+        <label for="pais">País:</label>
+        <input type="text" id="pais" name="pais" required><br><br>
+
+        <button type="submit">Salvar Endereço</button>
+    </form>
+
+    {% if mensagem %}
+        <p>{{ mensagem }}</p>
+    {% endif %}
+
+</body>
+</html>

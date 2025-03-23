@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizar Função</title>
+</head>
+<body>
+    <h1>Função: {{ funcao.descricao }}</h1>
+
+    <form action="/funcao/{{ funcao.id }}/delete" method="POST">
+        <button type="submit">Deletar Função</button>
+    </form>
+
+    <a href="/funcoes">Voltar para a lista de funções</a>
+</body>
+</html>

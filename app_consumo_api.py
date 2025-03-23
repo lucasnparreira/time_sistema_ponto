@@ -10,20 +10,17 @@ app = Flask(__name__)
 
 app.config['SECRET_KEY'] = os.urandom(24)
 
+CORS(app, resources={r"/*": {"origins": "*"}})
+
 api_url = "http://localhost:5000"
 
-# def get_db_connection():
-#     conn = sqlite3.connect('app.db')
-#     conn.row_factory = sqlite3.Row
-#     return conn 
-
-# def login_required(f):
-#     @wraps(f)
-#     def decorated_function(*args, **kwargs):
-#         if 'user' not in session:
-#             return redirect(url_for('login'))
-#         return f(*args, **kwargs)
-#     return decorated_function
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 #@app.route('/matricula/<string:nome>', methods=['GET'])
 def get_matricula_by_nome(nome):
@@ -67,96 +64,212 @@ def logout():
     session.pop('user', None)
     return redirect(url_for('login'))
   
-@app.route('/funcionario', methods=['POST', 'GET'])
-def add_funcionario():
-    if request.method == 'GET':
-        search = request.args.get('search')
-        if search:
-            response = requests.get(f"{api_url}/funcionario", params={'search': search})
-            return response.json(), response.status_code
-    
-    if request.method == 'POST':
-        data = request.json
-        response = requests.post(f"{api_url}/funcionario", json=data)
-        return response.json(), response.status_code
-
-@app.route('/funcionario/<int:matricula>', methods=['DELETE'])
-def delete_funcionario(matricula):
-    response = requests.delete(f"{api_url}/funcionario/{matricula}")
-    return response.json(), response.status_code
-
-@app.route('/funcionario/<int:matricula>', methods=['PUT'])
-def update_funcionario(matricula):
-    data = request.get_json()
-    response = requests.put(f"{api_url}/funcionario/{matricula}", json=data)
-    return response.json(), response.status_code
-
-@app.route('/funcionario/<int:matricula>', methods=['GET'])
-def get_funcionario(matricula):
-    response = requests.get(f"{api_url}/funcionario/{matricula}")
-    return response.json(), response.status_code
-
-@app.route('/funcionarios')
+@app.route('/funcionarios', methods=['GET'])
+# @login_required
 def list_funcionarios():
-    response = requests.get(f"{api_url}/funcionarios")
-    return response.json(), response.status_code
+    try:
+        response = requests.get(f"{api_url}/funcionarios")
+        if response.status_code == 200:
+            data = response.json()
+            funcionarios = data.get("funcionarios", [])  # Extrai a lista corretamente
+        else:
+            funcionarios = []
+    except requests.exceptions.RequestException as e:
+        print("Erro ao acessar a API:", e)
+        funcionarios = []
+
+    return render_template("lista_funcionarios.html", funcionarios=funcionarios)
+
+@app.route('/funcionario/<int:matricula>', methods=['GET', 'POST'])
+def get_funcionario(matricula):
+    try:
+        response = requests.get(f"{api_url}/funcionario/{matricula}")
+        if response.status_code == 200:
+            funcionario = response.json()
+        else:
+            funcionario = None
+    except requests.exceptions.RequestException as e:
+        print("Erro ao acessar a API:", e)
+        funcionario = None
+
+    if request.method == 'POST':
+        # Atualizar funcionário
+        data = {
+            "nome": request.form.get("nome"),
+            "funcao": request.form.get("funcao"),
+            "data_inicio": request.form.get("data_inicio"),
+            "data_termino": request.form.get("data_termino"),
+            "departamento": request.form.get("departamento"),
+            "gerente": request.form.get("gerente"),
+            "endereco": request.form.get("endereco"),
+            "telefone": request.form.get("telefone"),
+            "cpf": request.form.get("cpf"),
+            "rg": request.form.get("rg"),
+            "banco": request.form.get("banco"),
+            "agencia": request.form.get("agencia"),
+            "conta_corrente": request.form.get("conta_corrente"),
+        }
+
+        try:
+            update_response = requests.put(f"{api_url}/funcionario/{matricula}", json=data)
+            if update_response.status_code == 200:
+                return redirect(url_for('list_funcionarios'))  # Redireciona para a lista de funcionários após sucesso
+            else:
+                error_msg = update_response.json().get("error", "Erro ao atualizar funcionário.")
+                return render_template("funcionario.html", funcionario=funcionario, error=error_msg)
+        except requests.exceptions.RequestException as e:
+            error_msg = f"Erro na comunicação com a API: {e}"
+            return render_template("funcionario.html", funcionario=funcionario, error=error_msg)
+
+    return render_template("funcionario.html", funcionario=funcionario)
+
+@app.route('/funcionario/<int:matricula>/delete', methods=['DELETE'])
+def delete_funcionario(matricula):
+    try:
+        response = requests.delete(f"{api_url}/funcionario/{matricula}")
+        if response.status_code == 200:
+            message = "Funcionário removido com sucesso!"
+        else:
+            message = "Erro ao remover funcionário."
+    except requests.exceptions.RequestException as e:
+        print("Erro ao acessar a API:", e)
+        message = "Erro na comunicação com a API."
+
+    # Redireciona para a lista de funcionários após a remoção
+    return redirect(url_for('list_funcionarios'))
+
+
+@app.route('/funcionario', methods=['GET', 'POST'])
+def add_funcionario():
+    if request.method == 'POST':
+        # Coleta dados do formulário
+        data = {
+            "nome": request.form.get("nome"),
+            "funcao": request.form.get("funcao"),
+            "data_inicio": request.form.get("data_inicio"),
+            "data_termino": request.form.get("data_termino"),
+            "departamento": request.form.get("departamento"),
+            "gerente": request.form.get("gerente"),
+            "endereco": request.form.get("endereco"),
+            "telefone": request.form.get("telefone"),
+            "cpf": request.form.get("cpf"),
+            "rg": request.form.get("rg"),
+            "banco": request.form.get("banco"),
+            "agencia": request.form.get("agencia"),
+            "conta_corrente": request.form.get("conta_corrente"),
+        }
+
+        try:
+            response = requests.post(f"{api_url}/funcionario", json=data)
+            if response.status_code == 201:
+                return redirect(url_for('list_funcionarios'))  # Redireciona para a lista de funcionários após sucesso
+            else:
+                error_msg = response.json().get("error", "Erro ao adicionar funcionário.")
+        except requests.exceptions.RequestException as e:
+            error_msg = f"Erro na comunicação com a API: {e}"
+
+        return render_template("add_funcionario.html", error=error_msg)
+
+    return render_template("add_funcionario.html")
+
+
+@app.route('/funcionario/edit/<int:matricula>', methods=['GET', 'POST'])
+def update_funcionario(matricula):
+    # Buscar dados do funcionário atual para preencher o formulário
+    response = requests.get(f"{api_url}/funcionario/{matricula}")
+    
+    if response.status_code == 404:
+        return render_template("funcionario.html", error="Funcionário não encontrado.")
+
+    funcionario = response.json()
+
+    if request.method == 'POST':
+        data = {
+            "nome": request.form.get("nome"),
+            "funcao": request.form.get("funcao"),
+            "data_inicio": request.form.get("data_inicio"),
+            "data_termino": request.form.get("data_termino"),
+            "departamento": request.form.get("departamento"),
+            "gerente": request.form.get("gerente"),
+            "endereco": request.form.get("endereco"),
+            "telefone": request.form.get("telefone"),
+            "cpf": request.form.get("cpf"),
+            "rg": request.form.get("rg"),
+            "banco": request.form.get("banco"),
+            "agencia": request.form.get("agencia"),
+            "conta_corrente": request.form.get("conta_corrente"),
+        }
+
+        try:
+            update_response = requests.put(f"{api_url}/funcionario/{matricula}", json=data)
+            if update_response.status_code == 200:
+                return redirect(url_for('list_funcionarios'))  # Redireciona para a lista de funcionários após sucesso
+            else:
+                error_msg = update_response.json().get("error", "Erro ao atualizar funcionário.")
+        except requests.exceptions.RequestException as e:
+            error_msg = f"Erro na comunicação com a API: {e}"
+
+        return render_template("funcionario.html", funcionario=funcionario, error=error_msg)
+
+    return render_template("funcionario.html", funcionario=funcionario)
 
 @app.route('/endereco', methods=['GET', 'POST'])
 def add_endereco():
     if request.method == 'POST':
+        # Recebe os dados JSON do corpo da requisição
         data = request.json
         rua = data.get('rua')
         bairro = data.get('bairro')
         cidade = data.get('cidade')
         pais = data.get('pais')
 
+        # Verifica se todos os campos necessários estão preenchidos
         if not all([rua, bairro, cidade, pais]):
-            return render_template('endereco.html', mensagem="Dados incompletos")
+            return render_template('add_endereco.html', mensagem="Dados incompletos")
 
+        # Envia os dados para o backend (API)
         response = requests.post(f"{api_url}/endereco", json=data)
 
         if response.status_code == 201:
             return render_template('lista_enderecos.html', mensagem="Endereço adicionado com sucesso!")
         else:
-            return render_template('endereco.html', mensagem="Erro ao adicionar o endereço")
+            return render_template('add_endereco.html', mensagem="Erro ao adicionar o endereço")
     
-    return render_template('endereco.html')
+    return render_template('add_endereco.html')
 
-@app.route('/endereco/<int:id>', methods=['GET', 'PUT'])
+
+@app.route('/endereco/<int:id>', methods=['GET', 'POST'])
 def edit_endereco(id):
-    if request.method == 'PUT':
+    # Obtém os dados do endereço do backend
+    response = requests.get(f"{api_url}/endereco/{id}")
+
+    if response.status_code != 200:
+        return render_template('erro.html', mensagem="Endereço não encontrado")
+
+    endereco = response.json()
+
+    if request.method == 'POST':
+        # Coleta os dados atualizados
         data = request.json
         rua = data.get('rua')
         bairro = data.get('bairro')
         cidade = data.get('cidade')
         pais = data.get('pais')
 
-        response = requests.get(f"{api_url}/endereco/{id}")
-
-        if response.status_code != 200:
-            return render_template('erro.html', mensagem="Endereço não encontrado")
-
+        # Envia os dados para atualizar o endereço
         response = requests.put(f"{api_url}/endereco/{id}", json=data)
 
-        if response.status_code == 201:
+        if response.status_code == 200:
             return render_template('sucesso.html', mensagem="Endereço atualizado com sucesso!")
         else:
             return render_template('erro.html', mensagem="Erro ao atualizar o endereço")
     
-    response = requests.get(f"{api_url}/endereco/{id}")
-    if response.status_code != 200:
-        return render_template('erro.html', mensagem="Endereço não encontrado")
-    
-    endereco = response.json()
-    return render_template('edit_endereco.html', endereco=endereco)
+    return render_template('endereco.html', endereco=endereco)
 
-@app.route('/endereco/<int:id>', methods=['POST'])
+
+@app.route('/endereco/<int:id>/delete', methods=['POST'])
 def delete_endereco(id):
-    response = requests.get(f"{api_url}/endereco/{id}")
-
-    if response.status_code != 200:
-        return render_template('erro.html', mensagem="Endereço não encontrado")
-
+    # Envia uma solicitação DELETE para a API
     response = requests.delete(f"{api_url}/endereco/{id}")
 
     if response.status_code == 200:
@@ -174,7 +287,6 @@ def view_endereco(id):
     endereco = response.json()
     return render_template('view_endereco.html', endereco=endereco)
 
-
 @app.route('/enderecos', methods=['GET'])
 def list_enderecos():
     response = requests.get(f"{api_url}/enderecos")
@@ -183,12 +295,11 @@ def list_enderecos():
         return render_template('erro.html', mensagem="Tabela de endereços vazia")
 
     enderecos = response.json()
-    return render_template('list_enderecos.html', enderecos=enderecos)
+    return render_template('lista_enderecos.html', enderecos=enderecos)
 
 @app.route('/departamento', methods=['POST'])
 def add_departamento():
-    data = request.json
-    descricao = data.get('descricao')
+    descricao = request.form.get('descricao')  # Agora pegamos o dado do formulário
 
     if not descricao:
         return render_template('error.html', message='Dados incompletos'), 400
@@ -200,22 +311,27 @@ def add_departamento():
     else:
         return render_template('error.html', message='Erro ao criar departamento'), response.status_code
 
-@app.route('/departamento/<int:id>', methods=['PUT'])
+@app.route('/departamento/<int:id>', methods=['GET', 'POST'])
 def edit_departamento(id):
-    data = request.json
-    descricao = data.get('descricao')
+    if request.method == 'POST':
+        descricao = request.form.get('descricao')  # Pegando a nova descrição
+
+        if not descricao:
+            return render_template('error.html', message='Dados incompletos'), 400
+
+        response = requests.put(f"{api_url}/departamento/{id}", json={"descricao": descricao})
+
+        if response.status_code == 201:
+            return render_template('success.html', message='Departamento atualizado com sucesso!'), 201
+        else:
+            return render_template('error.html', message='Erro ao atualizar departamento'), response.status_code
 
     response = requests.get(f"{api_url}/departamento/{id}")
-
     if response.status_code != 200:
         return render_template('error.html', message='Departamento não encontrado'), 404
 
-    response = requests.put(f"{api_url}/departamento/{id}", json={"descricao": descricao})
-    
-    if response.status_code == 201:
-        return render_template('success.html', message='Departamento atualizado com sucesso!'), 201
-    else:
-        return render_template('error.html', message='Erro ao atualizar departamento'), response.status_code
+    departamento = response.json()
+    return render_template('edit_departamento.html', departamento=departamento)  # Página de edição com o departamento
 
 @app.route('/departamento/<int:id>/delete', methods=['POST'])
 def delete_departamento(id):
@@ -226,8 +342,8 @@ def delete_departamento(id):
 
     response = requests.delete(f"{api_url}/departamento/{id}")
 
-    if response.status_code == 201:
-        return render_template('success.html', message='Departamento deletado com sucesso!'), 201
+    if response.status_code == 200:
+        return render_template('success.html', message='Departamento deletado com sucesso!'), 200
     else:
         return render_template('error.html', message='Erro ao deletar departamento'), response.status_code
 
@@ -241,13 +357,18 @@ def view_departamento(id):
     else:
         return render_template('error.html', message='Departamento não encontrado'), 404
 
-@app.route('/departamentos')
+@app.route('/departamentos', methods=['GET'])
 def list_departamentos():
     response = requests.get(f"{api_url}/departamentos")
 
     if response.status_code == 200:
-        departamentos = response.json()
-        return render_template('list_departamentos.html', departamentos=departamentos), 200
+        try:
+            data = response.json()  # JSON retorna um dicionário
+            departamentos = data.get("departamentos", [])  # Pegamos apenas a lista dentro da chave "departamentos"
+
+            return render_template('lista_departamentos.html', departamentos=departamentos), 200
+        except ValueError:
+            return render_template('error.html', message='Erro ao processar resposta da API.'), 500
     else:
         return render_template('message.html', message='Tabela de departamentos vazia.'), 200
 
@@ -335,8 +456,7 @@ def add_evento():
         else:
             return render_template('error.html', message='Erro ao criar evento'), 500
 
-    return render_template('form_evento.html')
-
+    return render_template('add_evento.html')
 
 @app.route('/evento/<int:id>', methods=['PUT'])
 def edit_evento(id):
@@ -410,7 +530,7 @@ def add_ponto():
         else:
             return render_template('error.html', message='Erro ao registrar ponto'), 500
 
-    return render_template('form_ponto.html')
+    return render_template('add_ponto.html')
 
 
 @app.route('/ponto/<int:id>', methods=['PUT'])
@@ -435,16 +555,15 @@ def edit_ponto(id):
     else:
         return render_template('error.html', message='Erro ao atualizar ponto'), 500
 
-
-@app.route('/ponto/<int:id>/delete', methods=['DELETE'])
-def delete_ponto(id):
-    response = requests.delete(f"{api_url}/pontos/{id}")
+@app.route('/pontos', methods=['GET'])
+def listar_pontos():
+    response = requests.get(f"{api_url}/pontos")
 
     if response.status_code == 200:
-        return render_template('success.html', message='Ponto deletado com sucesso!')
+        pontos = response.json()
+        return render_template('list_pontos.html', pontos=pontos)
     else:
-        return render_template('error.html', message='Erro ao deletar ponto'), 500
-
+        return render_template('error.html', message='Nenhum ponto encontrado'), 200
 
 @app.route('/ponto/<int:id>', methods=['GET'])
 def view_ponto(id):
@@ -455,7 +574,6 @@ def view_ponto(id):
         return render_template('view_ponto.html', ponto=ponto)
     else:
         return render_template('error.html', message='Ponto não encontrado'), 404
-
 
 @app.route('/usuarios', methods=['GET'])
 def listar_usuarios():

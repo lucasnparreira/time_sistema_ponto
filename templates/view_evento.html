@@ -1,0 +1,19 @@
+<!-- view_evento.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizar Evento</title>
+</head>
+<body>
+    <h1>Detalhes do Evento</h1>
+    <p><strong>Código:</strong> {{ evento.codigo }}</p>
+    <p><strong>Descrição:</strong> {{ evento.descricao }}</p>
+
+    <br>
+    <a href="/evento/{{ evento.id }}/edit">Editar Evento</a>
+    <br>
+    <a href="/eventos">Voltar para lista de eventos</a>
+</body>
+</html>

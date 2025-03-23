@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizar Ponto</title>
+</head>
+<body>
+    <h1>Detalhes do Ponto</h1>
+    <p><strong>Hora de Entrada:</strong> {{ ponto.hora_entrada }}</p>
+    <p><strong>Hora de Saída:</strong> {{ ponto.hora_saida }}</p>
+    <p><strong>Data:</strong> {{ ponto.data }}</p>
+    <p><strong>Funcionário:</strong> {{ ponto.funcionario }}</p>
+    <p><strong>Evento:</strong> {{ ponto.evento }}</p>
+
+    <br>
+    <a href="/ponto/{{ ponto.id }}/edit">Editar Ponto</a>
+    <br>
+    <a href="/pontos">Voltar para lista de pontos</a>
+</body>
+</html>

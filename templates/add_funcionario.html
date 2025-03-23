@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar Funcionário</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    {% include 'menu.html' %}
+
+    <div class="container-relatorios">
+        <h2>Cadastrar Novo Funcionário</h2>
+
+        <!-- Exibe mensagens de erro, se houver -->
+        {% if error %}
+            <div class="error-message">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('add_funcionario') }}">
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" name="nome" required>
+
+            <label for="funcao">Função:</label>
+            <input type="text" id="funcao" name="funcao" required>
+
+            <label for="data_inicio">Data de Início:</label>
+            <input type="date" id="data_inicio" name="data_inicio" required>
+
+            <label for="data_termino">Data de Término:</label>
+            <input type="date" id="data_termino" name="data_termino">
+
+            <label for="departamento">Departamento:</label>
+            <input type="text" id="departamento" name="departamento">
+
+            <label for="gerente">Gerente:</label>
+            <input type="text" id="gerente" name="gerente">
+
+            <label for="endereco">Endereço:</label>
+            <input type="text" id="endereco" name="endereco">
+
+            <label for="telefone">Telefone:</label>
+            <input type="text" id="telefone" name="telefone">
+
+            <label for="cpf">CPF:</label>
+            <input type="text" id="cpf" name="cpf">
+
+            <label for="rg">RG:</label>
+            <input type="text" id="rg" name="rg">
+
+            <label for="banco">Banco:</label>
+            <input type="text" id="banco" name="banco">
+
+            <label for="agencia">Agência:</label>
+            <input type="text" id="agencia" name="agencia">
+
+            <label for="conta_corrente">Conta Corrente:</label>
+            <input type="text" id="conta_corrente" name="conta_corrente">
+
+            <button type="submit">Cadastrar Funcionário</button>
+        </form>
+
+        <a href="{{ url_for('list_funcionarios') }}"><button>Voltar para Lista de Funcionários</button></a>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

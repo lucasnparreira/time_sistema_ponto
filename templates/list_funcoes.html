@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listar Funções</title>
+</head>
+<body>
+    <h1>Lista de Funções</h1>
+
+    {% if funcoes %}
+        <ul>
+        {% for funcao in funcoes %}
+            <li>
+                {{ funcao.descricao }}
+                <a href="/funcao/{{ funcao.id }}">Visualizar</a> |
+                <a href="/funcao/{{ funcao.id }}/edit">Editar</a> |
+                <form action="/funcao/{{ funcao.id }}/delete" method="POST" style="display:inline;">
+                    <button type="submit">Deletar</button>
+                </form>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Não há funções cadastradas.</p>
+    {% endif %}
+
+    <a href="/funcao">Adicionar Nova Função</a>
+</body>
+</html>

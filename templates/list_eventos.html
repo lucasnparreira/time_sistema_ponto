@@ -1,0 +1,29 @@
+<!-- list_eventos.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Eventos</title>
+</head>
+<body>
+    <h1>Lista de Eventos</h1>
+    <a href="/evento/novo">Adicionar Novo Evento</a>
+    <br><br>
+    {% if eventos %}
+        <ul>
+            {% for evento in eventos %}
+                <li>
+                    <strong>Código:</strong> {{ evento.codigo }} <br>
+                    <strong>Descrição:</strong> {{ evento.descricao }} <br>
+                    <a href="/evento/{{ evento.id }}">Ver Detalhes</a> | 
+                    <a href="/evento/{{ evento.id }}/edit">Editar</a> | 
+                    <a href="/evento/{{ evento.id }}/delete">Deletar</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Nenhum evento encontrado.</p>
+    {% endif %}
+</body>
+</html>

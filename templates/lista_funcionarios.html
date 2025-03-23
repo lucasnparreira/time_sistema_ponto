@@ -3,16 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Funcionarios</title>
+    <title>Lista de Funcionários</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-
 </head>
 <body>
     {% include 'menu.html' %}
-   
 
     <div class="container-relatorios">
-        <h2>Lista de Funcionarios</h2>
+        <h2>Lista de Funcionários</h2>
         <table>
             <thead>
                 <tr>
@@ -26,27 +24,26 @@
             <tbody>
                 {% for funcionario in funcionarios %}
                 <tr>
-                    <td>{{ funcionario[0] }}</td>
-                    <td>{{ funcionario[1] }}</td>
-                    <td>{{ funcionario[2] }}</td>
-                    
+                    <td>{{ funcionario.matricula }}</td>
+                    <td>{{ funcionario.nome }}</td>
+                    <td>{{ funcionario.funcao }}</td>
                     <td class="action-buttons">
-                        <a href="{{ url_for('update_funcionario', matricula=funcionario[0]) }}"><button>Editar</button></a>
-                        <form method="POST" action="{{ url_for('delete_funcionario', matricula=funcionario[0]) }}" style="display:inline;">
-                            <button type="submit" onclick="return confirm('Tem certeza que deseja remover este funcionario?')">Remover</button>
+                        <!-- <a href="{{ url_for('get_funcionario', matricula=funcionario.matricula) }}"><button>Ver</button></a> -->
+                        <a href="{{ url_for('update_funcionario', matricula=funcionario.matricula) }}"><button>Editar</button></a>
+                        <form method="POST" action="{{ url_for('delete_funcionario', matricula=funcionario.matricula) }}" style="display:inline;">
+                            <button type="submit" onclick="return confirm('Tem certeza que deseja remover este funcionário?')">Remover</button>
                         </form>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
             {% else %}
-                <p>Nenhum funcionario encontrado.</p>
+                <p>Nenhum funcionário encontrado.</p>
             {% endif %}
         </table>
-        <a href="{{ url_for('add_funcionario') }}"><button>Adicionar Novo Funcionario</button></a>
+        <a href="{{ url_for('add_funcionario') }}"><button>Adicionar Novo Funcionário</button></a>
     </div>
 
-    <script src="../static/script.js"></script>
-        
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

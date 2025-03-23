@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizar Departamento</title>
+</head>
+<body>
+    <h1>Visualizar Departamento</h1>
+    <p><strong>ID:</strong> {{ departamento.id }}</p>
+    <p><strong>Descrição:</strong> {{ departamento.descricao }}</p>
+    <a href="{{ url_for('edit_departamento', id=departamento.id) }}">Editar Departamento</a> |
+    <a href="{{ url_for('list_departamentos') }}">Voltar para a lista</a>
+</body>
+</html>
