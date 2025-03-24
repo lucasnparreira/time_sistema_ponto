@@ -11,6 +11,7 @@
     <div class="container-relatorios">
     <h2>Lista de Departamentos</h2>
     {% if departamentos %}
+    <table>
         <ul>
             {% for departamento in departamentos %}
                 <li>
@@ -25,10 +26,12 @@
             {% endfor %}
         </ul>
         <a href="{{ url_for('add_departamento') }}">Adicionar Novo Departamento</a>
+    </table>
     </div>
     {% else %}
         <p>Nenhum departamento encontrado.</p>
     {% endif %}
     
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

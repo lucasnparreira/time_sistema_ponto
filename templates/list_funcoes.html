@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Listar Funções</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Lista de Funções</h1>
-
+    {% include 'menu.html' %}
+    <div class="container-relatorios">
+    <h2>Lista de Funções</h2>
     {% if funcoes %}
+    <table>
         <ul>
         {% for funcao in funcoes %}
             <li>
@@ -24,7 +27,11 @@
     {% else %}
         <p>Não há funções cadastradas.</p>
     {% endif %}
-
     <a href="/funcao">Adicionar Nova Função</a>
+</table>
+        </div>
+   
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

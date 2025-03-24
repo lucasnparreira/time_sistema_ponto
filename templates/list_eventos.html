@@ -5,12 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Eventos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Lista de Eventos</h1>
-    <a href="/evento/novo">Adicionar Novo Evento</a>
-    <br><br>
+    {% include 'menu.html' %}
+    <div class="container-relatorios">
+    <h2>Lista de Eventos</h2>
     {% if eventos %}
+    <table>
         <ul>
             {% for evento in eventos %}
                 <li>
@@ -22,8 +24,14 @@
                 </li>
             {% endfor %}
         </ul>
+        <a href="/evento/novo">Adicionar Novo Evento</a>
     {% else %}
         <p>Nenhum evento encontrado.</p>
     {% endif %}
+</table>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
 </body>
 </html>

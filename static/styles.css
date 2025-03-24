@@ -219,7 +219,7 @@ button:hover {
 }
 
 .container-relatorios {
-    width: 80%; /* Limita a largura a 70% */
+    width: 80%; /* Limita a largura a 80% */
     max-width: 800px; /* Largura máxima do formulário */
     height: auto; /* Ajusta a altura automaticamente */
     background: white;
@@ -228,6 +228,11 @@ button:hover {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     margin-top: 70px; /* Espaço do botão de menu */
     overflow-x: auto;
+}
+
+.container-relatorios #btn-retornar {
+    margin-top: 5px;
+    width: 100%;
 }
 
 

@@ -297,19 +297,26 @@ def list_enderecos():
     enderecos = response.json()
     return render_template('lista_enderecos.html', enderecos=enderecos)
 
-@app.route('/departamento', methods=['POST'])
+@app.route('/departamento', methods=['GET', 'POST'])
 def add_departamento():
-    descricao = request.form.get('descricao')  # Agora pegamos o dado do formulário
+    if request.method == 'POST':
+        # Recebe os dados do formulário
+        descricao = request.form.get('descricao')
 
-    if not descricao:
-        return render_template('error.html', message='Dados incompletos'), 400
+        # Verifica se a descrição foi preenchida
+        if not descricao:
+            return render_template('add_departamento.html', mensagem="Dados incompletos")
 
-    response = requests.post(f"{api_url}/departamento", json={"descricao": descricao})
-    
-    if response.status_code == 201:
-        return render_template('success.html', message='Departamento criado com sucesso!'), 201
-    else:
-        return render_template('error.html', message='Erro ao criar departamento'), response.status_code
+        # Envia os dados para a API no formato JSON
+        response = requests.post(f"{api_url}/departamentos", json={"descricao": descricao})
+
+        if response.status_code == 201:
+            return render_template('lista_departamentos.html', mensagem="Departamento adicionado com sucesso!")
+        else:
+            return render_template('add_departamento.html', mensagem="Erro ao adicionar o departamento")
+
+    return render_template('add_departamento.html')
+
 
 @app.route('/departamento/<int:id>', methods=['GET', 'POST'])
 def edit_departamento(id):
@@ -583,7 +590,7 @@ def listar_usuarios():
         usuarios = response.json()
         return render_template('list_usuarios.html', usuarios=usuarios)
     else:
-        return render_template('error.html', message='Nenhum usuário encontrado'), 200
+        return render_template('list_usuarios.html', message='Nenhum usuário encontrado'), 200
 
 
 if __name__ == '__main__':

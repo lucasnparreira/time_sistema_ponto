@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrar Ponto</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Registrar Novo Ponto</h1>
+    {% include 'menu.html' %}
+
+    <div class="container-relatorios">
+    <h2>Registrar Novo Ponto</h2>
     <form action="/ponto" method="POST">
         <label for="hora_entrada">Hora de Entrada:</label><br>
         <input type="time" id="hora_entrada" name="hora_entrada" required><br><br>
@@ -25,7 +29,9 @@
 
         <button type="submit">Salvar Ponto</button>
     </form>
-    <br>
-    <a href="/pontos">Voltar para lista de pontos</a>
+    <a href="/pontos"><button id="btn-retornar">Voltar para lista de pontos</button></a>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
