@@ -9,7 +9,7 @@
 <body>
     {% include 'menu.html' %}
 
-    <div class="container">
+    <div class="container-relatorios">
         <h3>Cadastrar Usuário</h3>
         <!-- Exibir mensagens de flash -->
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -31,6 +31,8 @@
 
             <button type="submit">Cadastrar</button>
         </form>
+        <a href="{{ url_for('listar_usuarios') }}"><button id="btn-retornar">Voltar para a lista de usuarios</button></a>
     </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

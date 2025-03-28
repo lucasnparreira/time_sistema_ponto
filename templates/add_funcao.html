@@ -4,17 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastrar Função</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Cadastrar Função</h1>
+    {% include 'menu.html' %}
+    <div class="container-relatorios">
+    <h2>Cadastrar Função</h2>
     <form action="/funcao" method="POST">
         <label for="descricao">Descrição:</label>
         <input type="text" id="descricao" name="descricao" required>
         <button type="submit">Criar Função</button>
     </form>
+    <a href="{{ url_for('list_funcoes') }}"><button id="btn-retornar">Voltar para a lista de departamentos</button></a>
 
     {% if message %}
         <p>{{ message }}</p>
     {% endif %}
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

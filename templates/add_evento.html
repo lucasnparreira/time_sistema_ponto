@@ -5,17 +5,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Adicionar Evento</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Cadastrar Novo Evento</h1>
-    <form action="/evento/novo" method="POST">
-        <label for="codigo">Código do Evento:</label><br>
-        <input type="text" id="codigo" name="codigo" required><br><br>
-        <label for="descricao">Descrição:</label><br>
-        <input type="text" id="descricao" name="descricao" required><br><br>
+    {% include 'menu.html' %}
+    <div class="container-relatorios">
+    <h2>Cadastrar Novo Evento</h2>
+    <form action="/evento" method="POST">
+        <label for="codigo">Código do Evento:</label>
+        <input type="text" id="codigo" name="codigo" required>
+        <label for="descricao">Descrição:</label>
+        <input type="text" id="descricao" name="descricao" required>
         <button type="submit">Salvar Evento</button>
     </form>
-    <br>
-    <a href="/eventos">Voltar para lista de eventos</a>
+    <a href="{{ url_for('list_funcoes') }}"><button id="btn-retornar">Voltar para a lista de departamentos</button></a>
+    <!-- <a href="/eventos">Voltar para lista de eventos</a> -->
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

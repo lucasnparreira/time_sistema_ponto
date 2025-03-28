@@ -379,20 +379,25 @@ def list_departamentos():
     else:
         return render_template('message.html', message='Tabela de departamentos vazia.'), 200
 
-@app.route('/funcao', methods=['POST'])
+@app.route('/funcao', methods=['GET', 'POST'])
 def add_funcao():
-    data = request.json
-    descricao = data.get('descricao')
+    if request.method == 'POST':
+        # Recebe os dados do formulário
+        descricao = request.form.get('descricao')
 
-    if not descricao:
-        return render_template('error.html', message='Dados incompletos'), 400
+        # Verifica se a descrição foi preenchida
+        if not descricao:
+            return render_template('add_funcao.html', mensagem="Dados incompletos")
 
-    response = requests.post(f"{api_url}/funcao", json={"descricao": descricao})
+        # Envia os dados para a API no formato JSON
+        response = requests.post(f"{api_url}/funcao", json={"descricao": descricao})
 
-    if response.status_code == 201:
-        return render_template('success.html', message='Função criada com sucesso!'), 201
-    else:
-        return render_template('error.html', message='Erro ao criar função'), response.status_code
+        if response.status_code == 201:
+            return render_template('list_funcoes.html', mensagem="Departamento adicionado com sucesso!")
+        else:
+            return render_template('add_funcao.html', mensagem="Erro ao adicionar o departamento")
+
+    return render_template('add_funcao.html')
 
 @app.route('/funcao/<int:id>', methods=['PUT'])
 def edit_funcao(id):
@@ -445,23 +450,23 @@ def list_funcoes():
     else:
         return render_template('message.html', message='Tabela de funções vazia.'), 200
 
-@app.route('/evento/novo', methods=['GET','POST'])
+@app.route('/evento', methods=['GET', 'POST'])
 def add_evento():
     if request.method == 'POST':
-        data = request.json
-        codigo = data.get('codigo')
-        descricao = data.get('descricao')
+        # Recebe os dados do formulário
+        descricao = request.form.get('descricao')
 
+        # Verifica se a descrição foi preenchida
         if not descricao:
-            return render_template('error.html', message='Dados incompletos'), 400
+            return render_template('add_evento.html', mensagem="Dados incompletos")
 
-        # Fazendo a requisição POST para a nova API
-        response = requests.post(f"{api_url}/eventos", json={'codigo': codigo, 'descricao': descricao})
+        # Envia os dados para a API no formato JSON
+        response = requests.post(f"{api_url}/evento", json={"descricao": descricao})
 
         if response.status_code == 201:
-            return render_template('success.html', message='Evento criado com sucesso!')
+            return render_template('list_eventos.html', mensagem="Departamento adicionado com sucesso!")
         else:
-            return render_template('error.html', message='Erro ao criar evento'), 500
+            return render_template('add_evento.html', mensagem="Erro ao adicionar o departamento")
 
     return render_template('add_evento.html')
 
@@ -581,6 +586,33 @@ def view_ponto(id):
         return render_template('view_ponto.html', ponto=ponto)
     else:
         return render_template('error.html', message='Ponto não encontrado'), 404
+
+@app.route('/usuario', methods=['GET', 'POST'])
+def add_usuario():
+    if request.method == 'POST':
+        # Recebe os dados do formulário
+        nome = request.form.get('nome')
+        senha = request.form.get('senha')
+
+        # Verifica se o nome e senha foram preenchidos
+        if not nome or senha:
+            return render_template('add_usuario.html', mensagem="Dados incompletos")
+
+        try:
+            hashed_password = generate_password_hash(senha)
+        except Exception as e:
+            return render_template('add_usuario.html', mensagem="Erro ao encriptografar senha!")
+
+    
+        # Envia os dados para a API no formato JSON
+        response = requests.post(f"{api_url}/usuario", json={"nome": nome, "senha":hashed_password})
+
+        if response.status_code == 201:
+            return render_template('listar_usuarios.html', mensagem="Departamento adicionado com sucesso!")
+        else:
+            return render_template('add_usuario.html', mensagem="Erro ao adicionar o departamento")
+
+    return render_template('add_usuario.html')
 
 @app.route('/usuarios', methods=['GET'])
 def listar_usuarios():
