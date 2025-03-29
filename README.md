@@ -2,7 +2,7 @@
 
 Este é um sistema de gerenciamento de ponto eletrônico desenvolvido em Python utilizando o framework Flask. O sistema permite gerenciar registros de entrada e saída de funcionários, filtrando os dados por funcionário e evento, e oferecendo uma interface simples e funcional.
 
-> **Aviso**: O frontend do sistema está em reformulação. Por enquanto, somente a API está funcionando. Utilize ferramentas como Postman ou Insomnia para consumir a API.
+> **Aviso**: O frontend do sistema está em reformulação. Por enquanto, somente a API (api_backend.py) está funcionando 100%. Utilize ferramentas como Postman ou Insomnia para consumir a API.
 
 ## 🚀 Funcionalidades
 
@@ -66,8 +66,10 @@ Para rodar o projeto, basta executar o arquivo app.py:
 ```json
 python app.py
 ```
+## Diagrama da API
+![alt text](static/diagram.png)
 
-## 📡 Endpoints da API
+## 📡 Endpoints da API para o Backend
 
 ### **/funcionario**
 - **POST**: Cadastrar um novo funcionário.
@@ -163,3 +165,50 @@ python app.py
 ### **/login**
 - **GET**: Exibir a tela de login.
 - **POST**: Realizar o login de um usuário.
+
+### 📡 Endpoints do Frontend (Para Integração com a API)
+Esses são os principais endpoints do frontend para interação com a API, ajudando a criar e atualizar dados no sistema de gerenciamento de ponto eletrônico.
+
+### /login
+**GET**: Exibe a tela de login.
+
+**POST**: Realiza a autenticação do usuário, iniciando uma sessão no sistema.
+
+### /home
+**GET**: Exibe a página inicial após o login.
+
+### /logout
+**GET**: Finaliza a sessão do usuário.
+
+### /funcionarios
+**GET**: Exibe a lista de todos os funcionários no frontend.
+
+**POST**: Envia os dados de um novo funcionário para a API e o cria no backend.
+
+### /funcionario/int:matricula
+**GET**: Exibe detalhes de um funcionário específico.
+
+**POST**: Atualiza as informações de um funcionário.
+
+**DELETE**: Deleta um funcionário específico.
+
+### /enderecos
+**GET**: Exibe a lista de todos os endereços no frontend.
+
+### /departamento
+**GET**: Exibe a lista de todos os departamentos no frontend.
+
+**POST**: Envia os dados de um novo departamento para a API e o cria no backend.
+
+### /funcao
+**GET**: Exibe a lista de todas as funções no frontend.
+
+**POST**: Envia os dados de uma nova função para a API e a cria no backend.
+
+### /ponto
+**GET**: Exibe os pontos registrados no frontend.
+
+**POST**: Envia os dados de um novo ponto para a API e o cria no backend.
+
+### /usuarios
+**GET**: Exibe a lista de todos os usuários no frontend.
