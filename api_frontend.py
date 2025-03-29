@@ -334,11 +334,13 @@ def edit_departamento(id):
             return render_template('error.html', message='Erro ao atualizar departamento'), response.status_code
 
     response = requests.get(f"{api_url}/departamento/{id}")
-    if response.status_code != 200:
+    
+    if response.status_code >= 200 and response.status_code <= 205:
         return render_template('error.html', message='Departamento não encontrado'), 404
 
-    departamento = response.json()
-    return render_template('edit_departamento.html', departamento=departamento)  # Página de edição com o departamento
+    departamento = response.json()  
+    
+    return render_template('edit_departamento.html', departamento=departamento)  
 
 @app.route('/departamento/<int:id>/delete', methods=['POST'])
 def delete_departamento(id):
@@ -399,22 +401,32 @@ def add_funcao():
 
     return render_template('add_funcao.html')
 
-@app.route('/funcao/<int:id>', methods=['PUT'])
+@app.route('/funcao/<int:id>', methods=['GET', 'POST'])
 def edit_funcao(id):
-    data = request.json
-    descricao = data.get('descricao')
+    if request.method == 'GET':
+        # Buscar os dados da função da API
+        response = requests.get(f"{api_url}/funcao/{id}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            funcao = data.get('funcao', {})
+            
+            if funcao:
+                return render_template('edit_funcao.html', funcao=funcao)
+            else:
+                return render_template('error.html', message='Função não encontrada'), 404
+        
+        return render_template('error.html', message='Erro ao buscar a função'), 404
 
-    response = requests.get(f"{api_url}/funcao/{id}")
-
-    if response.status_code != 200:
-        return render_template('error.html', message='Função não encontrada'), 404
-
-    response = requests.put(f"{api_url}/funcao/{id}", json={"descricao": descricao})
-
-    if response.status_code == 201:
-        return render_template('success.html', message='Função atualizada com sucesso!'), 201
-    else:
-        return render_template('error.html', message='Erro ao atualizar função'), response.status_code
+    elif request.method == 'POST':
+        descricao = request.form.get('descricao')
+        
+        response = requests.put(f"{api_url}/funcao/{id}", json={'descricao': descricao})
+        
+        if response.status_code == 200:
+            return render_template('success.html', message='Função atualizada com sucesso!')
+        else:
+            return render_template('error.html', message=f'Erro ao atualizar função: {response.text}'), 500
 
 @app.route('/funcao/<int:id>/delete', methods=['POST'])
 def delete_funcao(id):
@@ -430,15 +442,15 @@ def delete_funcao(id):
     else:
         return render_template('error.html', message='Erro ao deletar função'), response.status_code
 
-@app.route('/funcao/<int:id>', methods=['GET'])
-def view_funcao(id):
-    response = requests.get(f"{api_url}/funcao/{id}")
+# @app.route('/funcao/<int:id>', methods=['GET'])
+# def view_funcao(id):
+#     response = requests.get(f"{api_url}/funcao/{id}")
 
-    if response.status_code == 200:
-        funcao = response.json()
-        return render_template('view_funcao.html', funcao=funcao), 200
-    else:
-        return render_template('error.html', message='Função não encontrada'), 404
+#     if response.status_code == 200:
+#         funcao = response.json()
+#         return render_template('view_funcao.html', funcao=funcao), 200
+#     else:
+#         return render_template('error.html', message='Função não encontrada'), 404
 
 @app.route('/funcoes')
 def list_funcoes():
@@ -515,6 +527,10 @@ def list_eventos():
 
     if response.status_code == 200:
         eventos = response.json()
+
+        if isinstance(eventos, dict) and 'eventos' in eventos:
+            eventos = eventos['eventos']
+
         return render_template('list_eventos.html', eventos=eventos)
     else:
         return render_template('message.html', message='Nenhum evento encontrado'), 200
@@ -523,17 +539,19 @@ def list_eventos():
 @app.route('/ponto', methods=['GET', 'POST'])
 def add_ponto():
     if request.method == 'POST':
-        data = request.json
-        hora_entrada = data.get('hora_entrada')
-        hora_saida = data.get('hora_saida')
-        data_ponto = data.get('data')
-        nome_funcionario = data.get('funcionario') 
-        evento = data.get('evento')
+        # Corrigindo para capturar dados do formulário
+        hora_entrada = request.form.get('hora_entrada')
+        hora_saida = request.form.get('hora_saida')
+        data_ponto = request.form.get('data')
+        nome_funcionario = request.form.get('funcionario')
+        evento = request.form.get('evento')
 
+        # Verifica se todos os campos estão preenchidos
         if not all([hora_entrada, hora_saida, data_ponto, nome_funcionario, evento]):
-                return render_template('error.html', message='Dados incompletos'), 404
+            return render_template('error.html', message='Dados incompletos'), 400
 
-        response = requests.post(f"{api_url}/pontos", json={
+        # Log para depuração
+        print("Dados enviados para API:", {
             'hora_entrada': hora_entrada,
             'hora_saida': hora_saida,
             'data': data_ponto,
@@ -541,35 +559,87 @@ def add_ponto():
             'evento': evento
         })
 
-        if response.status_code == 201:
-            return render_template('success.html', message='Ponto registrado com sucesso!')
+        # Envia os dados para a API
+        response = requests.post(f"{api_url}/ponto", json={
+            'hora_entrada': hora_entrada,
+            'hora_saida': hora_saida,
+            'data': data_ponto,
+            'funcionario': nome_funcionario,
+            'evento': evento
+        })
+
+        print("Resposta da API:", response.status_code, response.text)  # Log da resposta da API
+
+        if response.status_code >= 200 and response.status_code <= 205:
+            return render_template('list_pontos.html')
         else:
-            return render_template('error.html', message='Erro ao registrar ponto'), 500
+            return render_template('error.html', message=f'Erro ao registrar ponto: {response.text}'), 500
 
     return render_template('add_ponto.html')
 
 
-@app.route('/ponto/<int:id>', methods=['PUT'])
-def edit_ponto(id):
-    data = request.json
-    hora_entrada = data.get('hora_entrada')
-    hora_saida = data.get('hora_saida')
-    data = data.get('data')
-    funcionario = data.get('funcionario')
-    evento = data.get('evento')
 
-    response = requests.put(f"{api_url}/pontos/{id}", json={
-        'hora_entrada': hora_entrada,
-        'hora_saida': hora_saida,
-        'data': data,
-        'funcionario': funcionario,
-        'evento': evento
-    })
+@app.route('/ponto/<int:id>', methods=['GET', 'POST'])
+def edit_ponto(id):
+    if request.method == 'GET':
+        response = requests.get(f"{api_url}/ponto/{id}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print("Dados recebidos da API:", data)
+
+            pontos = data.get('pontos', [])
+            if pontos:
+                ponto = pontos[0]
+            else:
+                return render_template('error.html', message='Ponto não encontrado'), 404
+
+            return render_template('edit_ponto.html', ponto=ponto)
+
+        return render_template('error.html', message='Erro ao buscar o ponto'), 404
+
+    elif request.method == 'POST':
+        # Recebe os dados editados do formulário
+        hora_entrada = request.form.get('hora_entrada')
+        hora_saida = request.form.get('hora_saida')
+        data_ponto = request.form.get('data')
+        funcionario = request.form.get('funcionario')
+        evento = request.form.get('evento')
+
+        # 🔍 Log dos valores recebidos antes de enviar para API
+        print("Dados enviados para atualização:", {
+            'hora_entrada': hora_entrada,
+            'hora_saida': hora_saida,
+            'data': data_ponto,
+            'funcionario': funcionario,
+            'evento': evento
+        })
+
+        # Atualiza via API
+        response = requests.put(f"{api_url}/ponto/{id}", json={
+            'hora_entrada': hora_entrada,
+            'hora_saida': hora_saida,
+            'data': data_ponto,
+            'funcionario': funcionario,
+            'evento': evento
+        })
+
+        print("Resposta da API:", response.status_code, response.text)  # 🔍 Log da resposta da API
+
+        if response.status_code == 200:
+            return render_template('list_pontos.html', message='Ponto atualizado com sucesso!')
+        else:
+            return render_template('error.html', message=f'Erro ao atualizar ponto: {response.text}'), 500
+
+@app.route('/ponto/delete/<int:id>', methods=['DELETE'])
+@login_required
+def delete_ponto(id):
+    response = requests.delete(f"{api_url}/ponto/{id}")
 
     if response.status_code == 200:
-        return render_template('success.html', message='Ponto atualizado com sucesso!')
+        return render_template('success.html', message='Ponto deletado com sucesso!')
     else:
-        return render_template('error.html', message='Erro ao atualizar ponto'), 500
+        return render_template('error.html', message='Erro ao deletar ponto'), 500
 
 @app.route('/pontos', methods=['GET'])
 def list_pontos():
@@ -624,14 +694,42 @@ def add_usuario():
     return render_template('add_usuario.html')
 
 @app.route('/usuarios', methods=['GET'])
-def listar_usuarios():
+def list_usuarios():
     response = requests.get(f"{api_url}/usuarios")
 
     if response.status_code == 200:
         usuarios = response.json()
+
+        if isinstance(usuarios, dict) and 'usuarios' in usuarios:
+            usuarios = usuarios['usuarios']
+
         return render_template('list_usuarios.html', usuarios=usuarios)
     else:
         return render_template('list_usuarios.html', message='Nenhum usuário encontrado'), 200
+
+@app.route('/usuario/<int:id>', methods=['GET','PUT'])
+@login_required
+def edit_usuario(id):
+    data = request.json
+    nome = data.get('nome')
+    senha = data.get('senha')
+
+    response = requests.put(f"{api_url}/usuario/{id}", json={'nome': nome, 'senha': senha})
+
+    if response.status_code == 200:
+        return render_template('success.html', message='Usuario atualizado com sucesso!')
+    else:
+        return render_template('error.html', message='Erro ao atualizar usuario'), 500
+
+@app.route('/usuario/delete/<int:id>', methods=['DELETE'])
+@login_required
+def delete_usuario(id):
+    response = requests.delete(f"{api_url}/usuario/{id}")
+
+    if response.status_code == 200:
+        return render_template('success.html', message='Usuario deletado com sucesso!')
+    else:
+        return render_template('error.html', message='Erro ao deletar usuario'), 500
 
 
 if __name__ == '__main__':

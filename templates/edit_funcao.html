@@ -4,18 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Função</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <h1>Editar Função</h1>
+    {% include 'menu.html' %}
+    <div class="container-relatorios">
+    <h2>Editar Função</h2>
     <form action="/funcao/{{ funcao.id }}" method="POST">
         <input type="hidden" name="_method" value="PUT">
         <label for="descricao">Descrição:</label>
         <input type="text" id="descricao" name="descricao" value="{{ funcao.descricao }}" required>
         <button type="submit">Atualizar Função</button>
     </form>
-
+    <a href="{{ url_for('list_funcoes') }}"><button id="btn-retornar">Cancelar</button></a>
     {% if message %}
         <p>{{ message }}</p>
     {% endif %}
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

@@ -349,27 +349,44 @@ def add_departamento():
 
     return jsonify({'message': 'Departamento criado com sucesso!'}), 201
     
-@app.route('/departamento/<int:id>', methods=['PUT'])
-# @login_required
+@app.route('/departamento/<int:id>', methods=['GET', 'PUT'])
 def edit_departamento(id):
-    data = request.json
-    descricao = data.get('descricao')
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute('SELECT * FROM DEPARTAMENTO WHERE id = ?', (id,))
-    departamento = cursor.fetchone()
-
-    if not departamento:
+    if request.method == 'GET':
+        # Busca o departamento com o ID fornecido
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM DEPARTAMENTO WHERE id = ?', (id,))
+        departamento = cursor.fetchone()
         conn.close()
-        return jsonify({'error': 'Departamento não encontrado'}), 404
 
-    cursor.execute('UPDATE DEPARTAMENTO SET descricao = ? WHERE id = ?', (descricao, id))
-    conn.commit()
-    conn.close()
+        if not departamento:
+            return jsonify({'error': 'Departamento não encontrado'}), 404
 
-    return jsonify({'message': 'Departamento atualizado com sucesso!'}), 201
+        # Retorna os dados do departamento em formato JSON
+        return jsonify({'id': departamento[0], 'descricao': departamento[1]}), 200
+
+    elif request.method == 'PUT':
+        # Atualiza o departamento com os dados fornecidos no corpo da requisição
+        data = request.json
+        descricao = data.get('descricao')
+
+        if not descricao:
+            return jsonify({'error': 'Descrição é obrigatória'}), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM DEPARTAMENTO WHERE id = ?', (id,))
+        departamento = cursor.fetchone()
+
+        if not departamento:
+            conn.close()
+            return jsonify({'error': 'Departamento não encontrado'}), 404
+
+        cursor.execute('UPDATE DEPARTAMENTO SET descricao = ? WHERE id = ?', (descricao, id))
+        conn.commit()
+        conn.close()
+
+        return jsonify({'message': 'Departamento atualizado com sucesso!'}), 200
 
 
 @app.route('/departamento/<int:id>/delete', methods=['POST'])
@@ -394,21 +411,21 @@ def delete_departamento(id):
 
 
 
-@app.route('/departamento/<int:id>', methods=['GET'])
-# @login_required
-def view_departamento(id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+# @app.route('/departamento/<int:id>', methods=['GET'])
+# # @login_required
+# def view_departamento(id):
+#     conn = get_db_connection()
+#     cursor = conn.cursor()
 
-    cursor.execute('SELECT * FROM DEPARTAMENTO WHERE id = ?', (id,))
-    departamento = cursor.fetchone()
+#     cursor.execute('SELECT * FROM DEPARTAMENTO WHERE id = ?', (id,))
+#     departamento = cursor.fetchone()
 
-    if not departamento:
-        return jsonify({'error': 'Departamento nao encontrado.'}), 404
+#     if not departamento:
+#         return jsonify({'error': 'Departamento nao encontrado.'}), 404
 
-    conn.close()
+#     conn.close()
     
-    return jsonify({'departamento': departamento}), 201
+#     return jsonify({'departamento': departamento}), 201
 
 
 @app.route('/departamentos')
@@ -458,28 +475,45 @@ def add_funcao():
 
     return jsonify({'message': 'Funcao criada com sucesso!'}), 201
 
-@app.route('/funcao/<int:id>', methods=['PUT'])
+@app.route('/funcao/<int:id>', methods=['GET', 'PUT'])
 # @login_required
 def edit_funcao(id):
-    data = request.json
-    #id = request.form.get('id')
-    descricao = data.get('descricao')
+    if request.method == 'GET':
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT * FROM FUNCAO WHERE id = ?', (id,))
+        funcao = cursor.fetchone()
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute('SELECT * FROM FUNCAO WHERE id = ?', (id,))
-    funcao = cursor.fetchone()
+        if not funcao:
+            conn.close()
+            return jsonify({'error': 'Função não encontrada'}), 404
 
-    if not funcao:
         conn.close()
-        return jsonify({'error': 'Função não encontrada'}), 404
+        return jsonify({'funcao': {'id': funcao[0], 'descricao': funcao[1]}}), 200
 
-    cursor.execute('UPDATE FUNCAO SET descricao = ? WHERE id = ?', (descricao, id))
-    conn.commit()
-    conn.close()
+    elif request.method == 'PUT':
+        data = request.json
+        descricao = data.get('descricao')
 
-    return jsonify({'message': 'Funcao atualizada com sucesso!'}), 201
+        if not descricao:
+            return jsonify({'error': 'Descrição é obrigatória'}), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT * FROM FUNCAO WHERE id = ?', (id,))
+        funcao = cursor.fetchone()
+
+        if not funcao:
+            conn.close()
+            return jsonify({'error': 'Função não encontrada'}), 404
+
+        cursor.execute('UPDATE FUNCAO SET descricao = ? WHERE id = ?', (descricao, id))
+        conn.commit()
+        conn.close()
+
+        return jsonify({'message': 'Função atualizada com sucesso!'}), 200
 
 
 @app.route('/funcao/<int:id>/delete', methods=['POST'])
@@ -503,21 +537,21 @@ def delete_funcao(id):
 
 
 
-@app.route('/funcao/<int:id>', methods=['GET'])
-# @login_required
-def view_funcao(id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+# @app.route('/funcao/<int:id>', methods=['GET'])
+# # @login_required
+# def view_funcao(id):
+#     conn = get_db_connection()
+#     cursor = conn.cursor()
 
-    cursor.execute('SELECT * FROM FUNCAO WHERE id = ?', (id,))
-    funcao = cursor.fetchone()
+#     cursor.execute('SELECT * FROM FUNCAO WHERE id = ?', (id,))
+#     funcao = cursor.fetchone()
     
-    if not funcao:
-        conn.close()
-        return jsonify({'error': 'função não encontrada'}), 404
+#     if not funcao:
+#         conn.close()
+#         return jsonify({'error': 'função não encontrada'}), 404
 
-    conn.close()
-    return jsonify({'funcao': funcao}), 201
+#     conn.close()
+#     return jsonify({'funcao': funcao}), 201
 
 @app.route('/funcoes')
 # @login_required
@@ -655,44 +689,55 @@ def list_eventos():
 @app.route('/ponto', methods=['GET', 'POST'])
 # @login_required
 def add_ponto():
-    data = request.json
-    hora_entrada = data.get('hora_entrada')
-    hora_saida = data.get('hora_saida')
-    data_ponto = data.get('data')
-    nome_funcionario = data.get('funcionario') 
-    evento = data.get('evento')
-
-    if not all([hora_entrada, hora_saida, data_ponto, nome_funcionario, evento]):
-            return jsonify({'error': 'Dados incompletos'}), 404
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute('SELECT codigo, descricao FROM evento')
-    eventos = cursor.fetchall()
-
-    cursor.execute('SELECT matricula FROM FUNCIONARIO WHERE nome = ?', (nome_funcionario,))
-    resultado = cursor.fetchone()
-        
-    if resultado:
-        matricula_funcionario = resultado['matricula']
-    else:
-        conn.close()
-        return jsonify({'error': 'Funcionário não encontrado'}), 404
-
     try:
+        data = request.json
+    
+        hora_entrada = data.get('hora_entrada')
+        hora_saida = data.get('hora_saida')
+        data_ponto = data.get('data')
+        nome_funcionario = data.get('funcionario') 
+        evento = data.get('evento')
+
+        if not all([hora_entrada, hora_saida, data_ponto, nome_funcionario, evento]):
+            return jsonify({'error': 'Dados incompletos'}), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT matricula FROM FUNCIONARIO WHERE nome = ?', (nome_funcionario,))
+        resultado = cursor.fetchone()
+        
+        if resultado:
+            matricula_funcionario = resultado['matricula']
+    
+        else:
+            conn.close()
+            return jsonify({'error': 'Funcionário não encontrado'}), 404
+
+        cursor.execute('SELECT codigo FROM EVENTO WHERE descricao = ?', (evento,))
+        evento_resultado = cursor.fetchone()
+
+        if evento_resultado:
+            evento = evento_resultado['codigo']
+        else:
+            print("Evento não encontrado - continuando a insercao ")
+
+        # Insere o ponto no banco
         cursor.execute(
             'INSERT INTO PONTO (funcionario, data, hora_entrada, hora_saida, evento) VALUES (?, ?, ?, ?, ?)',
             (matricula_funcionario, data_ponto, hora_entrada, hora_saida, evento)
         )
         conn.commit()
+        
         return jsonify({'message': 'Ponto registrado com sucesso!'}), 201
+
     except Exception as e:
         conn.rollback()
-        conn.close()
         return jsonify({'error': f'Erro ao registrar ponto: {str(e)}'}), 500
+
     finally:
         conn.close()
+
 
 @app.route('/ponto/<int:id>', methods=['PUT'])
 # @login_required
@@ -701,7 +746,7 @@ def edit_ponto(id):
     #id = request.form.get('id')
     hora_entrada = data.get('hora_entrada')
     hora_saida = data.get('hora_saida')
-    data = data.get('data')
+    data_ponto = data.get('data')
     funcionario = data.get('funcionario')
     evento = data.get('evento')
 
@@ -715,7 +760,7 @@ def edit_ponto(id):
         conn.close()
         return jsonify({'error': 'Ponto não encontrado'}), 404
 
-    cursor.execute('UPDATE PONTO SET funcionario = ?, data = ?, hora_entrada = ?, hora_saida = ?, evento = ? WHERE id = ?', (hora_entrada, hora_saida, data, funcionario, evento, id))
+    cursor.execute('UPDATE PONTO SET funcionario = ?, data = ?, hora_entrada = ?, hora_saida = ?, evento = ? WHERE id = ?', (hora_entrada, hora_saida, data_ponto, funcionario, evento, id))
     conn.commit()
     conn.close()
 
@@ -813,7 +858,7 @@ def list_pontos():
     
     try:
         if request.method == 'POST':
-            data = request.json  # Recebe JSON corretamente
+            data = request.json  
             filtro = data.get('filtro')
             filtro_evento = data.get('filtro_evento')
 
@@ -834,6 +879,7 @@ def list_pontos():
                 query += ' AND (e.codigo = ? OR e.descricao LIKE ?)'
                 params.extend([filtro_evento, f"%{filtro_evento}%"])
 
+
             cursor.execute(query, params)
         else:
             cursor.execute('''
@@ -842,34 +888,35 @@ def list_pontos():
                 JOIN EVENTO e ON p.evento = e.codigo
                 JOIN FUNCIONARIO f ON p.funcionario = f.matricula
             ''')
+            
 
         pontos = cursor.fetchall()
         
-        pontos_json = [
-            {
-                "id": row[0],
-                "nome": row[1],
-                "data": row[2],
-                "hora_entrada": row[3],
-                "hora_saida": row[4],
-                "evento": row[5]
-            }
-            for row in pontos
-        ]
-
-        return jsonify({"pontos": pontos_json}), 200
+        if pontos:  # Verifica se há pontos
+            pontos_json = [
+                {
+                    "id": row[0],
+                    "nome": row[1],
+                    "data": row[2],
+                    "hora_entrada": row[3],
+                    "hora_saida": row[4],
+                    "evento": row[5]
+                }
+                for row in pontos
+            ]
+            return jsonify({"pontos": pontos_json}), 200
+        else:
+            return jsonify({"message": "Nenhum ponto encontrado."}), 404
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": f"Erro ao listar pontos: {str(e)}"}), 500
 
     finally:
         cursor.close()
         conn.close()
 
-
-
 @app.route('/usuario', methods=['POST'])
-@login_required
+# @login_required
 def add_usuario():
     data = request.json
     nome = data.get('nome')
@@ -902,7 +949,7 @@ def add_usuario():
 
 
 @app.route('/usuario/<int:id>', methods=['GET','PUT'])
-@login_required
+# @login_required
 def edit_usuario(id):
     data = request.json
     nome = data.get('nome')
@@ -935,7 +982,7 @@ def edit_usuario(id):
         return jsonify({"message": "Usuario atualizado com sucesso!"})
 
 @app.route('/usuario/delete/<int:id>', methods=['DELETE'])
-@login_required
+# @login_required
 def delete_usuario(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -949,7 +996,7 @@ def delete_usuario(id):
     return jsonify({"message": "Usuario deletado com sucesso!"})
 
 @app.route('/usuarios', methods=['GET'])
-@login_required
+# @login_required
 def listar_usuarios():
     conn = get_db_connection()
     cursor = conn.cursor()

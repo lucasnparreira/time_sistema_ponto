@@ -36,11 +36,11 @@
                     <td>{{ ponto.nome }} </td>
                     <td>{{ ponto.evento }} </td>
                     <td class="actions">
-                        <a href="/ponto/{{ ponto.id }}">
+                        <!-- <a href="/ponto/{{ ponto.id }}">
                             <i class="fas fa-eye"></i>
-                        </a>
+                        </a> -->
                         
-                        <a href="/ponto/{{ ponto.id }}/edit">
+                        <a href="{{ url_for('edit_ponto', id=ponto.id) }}">
                             <i class="fas fa-edit"></i>
                         </a>
                         

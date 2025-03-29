@@ -45,7 +45,8 @@
                 <p>Nenhum funcionário encontrado.</p>
             {% endif %}
         </table>
-        <a href="{{ url_for('add_funcionario') }}"><button>Adicionar Novo Funcionário</button></a>
+        <a href="{{ url_for('add_funcionario') }}"><button id="btn-retornar">Adicionar Novo Funcionário</button></a>
+        <a href="{{ url_for('index') }}"><button id="btn-retornar">Voltar para tela inicial</button></a>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>

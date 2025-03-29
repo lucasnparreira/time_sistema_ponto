@@ -13,16 +13,23 @@
     <h2>Lista de Departamentos</h2>
     {% if departamentos %}
     <table>
-        <ul>
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Descricao</th>
+                <th>Acoes</th>
+            </tr>
+        </thead>
+        <tbody>
             {% for departamento in departamentos %}
-                <li>
-                    {{ departamento.id }}
-                    {{ departamento.descricao }}
-                    <a href="/departamento/{{ departamento.id }}">
+                <tr>
+                    <td>{{ departamento.id }}</td>
+                    <td>{{ departamento.descricao }}</td>
+                    <!-- <td><a href="/departamento/{{ departamento.id }}">
                         <i class="fas fa-eye"></i>
-                    </a>
+                    </a> -->
                     
-                    <a href="/departamento/{{ departamento.id }}/edit">
+                    <td><a href="/departamento/{{ departamento.id }}">
                         <i class="fas fa-edit"></i>
                     </a>
                     
@@ -30,13 +37,14 @@
                         <button type="submit" style="border: none; color:red; background: none; align-items: center;">
                             <i class="fas fa-trash-alt"></i>
                         </button>
-                    </form>
-                </li>
+                    </form></td>
+                </tr>
             {% endfor %}
-        </ul>
-        <a href="{{ url_for('add_departamento') }}">Adicionar Novo Departamento</a>
-        <a href="{{ url_for('index') }}"><button id="btn-retornar">Voltar para tela inicial</button></a>
+        </tbody>
+       
     </table>
+    <a href="{{ url_for('add_departamento') }}"><button id="btn-retornar">Adicionar Novo Departamento</button></a>
+    <a href="{{ url_for('index') }}"><button id="btn-retornar">Voltar para tela inicial</button></a>
     </div>
     {% else %}
         <p>Nenhum departamento encontrado.</p>
