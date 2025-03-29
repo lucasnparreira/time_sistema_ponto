@@ -446,6 +446,10 @@ def list_funcoes():
 
     if response.status_code == 200:
         funcoes = response.json()
+
+        if isinstance(funcoes, dict) and 'funcoes' in funcoes:
+            funcoes = funcoes['funcoes']
+
         return render_template('list_funcoes.html', funcoes=funcoes), 200
     else:
         return render_template('message.html', message='Tabela de funções vazia.'), 200
@@ -568,14 +572,19 @@ def edit_ponto(id):
         return render_template('error.html', message='Erro ao atualizar ponto'), 500
 
 @app.route('/pontos', methods=['GET'])
-def listar_pontos():
+def list_pontos():
     response = requests.get(f"{api_url}/pontos")
+    # print(response)
 
     if response.status_code == 200:
         pontos = response.json()
+
+        # Se os dados vierem dentro de uma chave 'pontos', acessar corretamente:
+        if isinstance(pontos, dict) and 'pontos' in pontos:
+            pontos = pontos['pontos']
         return render_template('list_pontos.html', pontos=pontos)
     else:
-        return render_template('error.html', message='Nenhum ponto encontrado'), 200
+        return render_template('message.html', message='Nenhum ponto encontrado'), 200
 
 @app.route('/ponto/<int:id>', methods=['GET'])
 def view_ponto(id):

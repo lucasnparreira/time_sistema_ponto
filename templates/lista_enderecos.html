@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Endereços</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <h1>Lista de Endereços</h1>
@@ -30,9 +31,19 @@
                 <td>{{ endereco.cidade }}</td>
                 <td>{{ endereco.pais }}</td>
                 <td>
-                    <a href="{{ url_for('view_endereco', id=endereco.id) }}">Ver</a>
-                    <a href="{{ url_for('edit_endereco', id=endereco.id) }}">Editar</a>
-                    <a href="{{ url_for('delete_endereco', id=endereco.id) }}">Excluir</a>
+                    <a href="/departamento/{{ departamento.id }}">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    
+                    <a href="/departamento/{{ departamento.id }}/edit">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    
+                    <form action="/departamento/{{ departamento.id }}/delete" method="POST" style="display:inline;">
+                        <button type="submit" style="border: none; color:red; background: none; align-items: center;">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </form>
                 </td>
             </tr>
             {% endfor %}

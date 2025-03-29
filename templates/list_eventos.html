@@ -6,24 +6,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Eventos</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     {% include 'menu.html' %}
     <div class="container-relatorios">
     <h2>Lista de Eventos</h2>
-    {% if eventos %}
     <table>
+        <thead>
+            <tr>
+                <th>Codigo</th>
+                <th>Descrição</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% if eventos %}
         <ul>
             {% for evento in eventos %}
                 <li>
-                    <strong>Código:</strong> {{ evento.codigo }} <br>
-                    <strong>Descrição:</strong> {{ evento.descricao }} <br>
-                    <a href="/evento/{{ evento.id }}">Ver Detalhes</a> | 
-                    <a href="/evento/{{ evento.id }}/edit">Editar</a> | 
-                    <a href="/evento/{{ evento.id }}/delete">Deletar</a>
+                    {{ evento.codigo }}
+                    {{ evento.descricao }} 
+                    <td class="actions">
+                        <a href="/evento/{{ evento.id }}">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        
+                        <a href="/evento/{{ evento.id }}/edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        
+                        <form action="/evento/{{ evento.id }}/delete" method="POST" style="display:inline;">
+                            <button type="submit" style="border: none; color:red; background: none; align-items: center;">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </form>
+                    </td>
                 </li>
             {% endfor %}
         </ul>
+        </tbody>
         <a href="/evento/novo">Adicionar Novo Evento</a>
     {% else %}
         <p>Nenhum evento encontrado.</p>

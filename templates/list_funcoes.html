@@ -5,33 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Listar Funções</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 </head>
 <body>
     {% include 'menu.html' %}
     <div class="container-relatorios">
     <h2>Lista de Funções</h2>
-    {% if funcoes %}
+    
+    <!-- {% print(funcoes) %} -->
     <table>
-        <ul>
+        <thead>
+            <tr>
+                <th>Descrição</th>
+            </tr>
+        </thead>
+        {% if funcoes %}
+        <tbody>
+        <tr>
         {% for funcao in funcoes %}
-            <li>
-                {{ funcao.descricao }}
-                <a href="/funcao/{{ funcao.id }}">Visualizar</a> |
-                <a href="/funcao/{{ funcao.id }}/edit">Editar</a> |
-                <form action="/funcao/{{ funcao.id }}/delete" method="POST" style="display:inline;">
-                    <button type="submit">Deletar</button>
-                </form>
-            </li>
-        {% endfor %}
-        </ul>
+          
+                <!-- {{ funcao.id }} -->
+                <td>{{ funcao.descricao }}</td>
+                <td class="actions">
+                    <a href="/funcao/{{ funcao.id }}">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    
+                    <a href="/funcao/{{ funcao.id }}/edit">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    
+                    <form action="/funcao/{{ funcao.id }}/delete" method="POST" style="display:inline;">
+                        <button type="submit" style="border: none; color:red; background: none; align-items: center;">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </form>
+                </td>
+        
+        </tr>
+    </tbody>
+    {% endfor %}
     {% else %}
         <p>Não há funções cadastradas.</p>
     {% endif %}
-    <a href="/funcao">Adicionar Nova Função</a>
+    
 </table>
+<a href="/funcao"><button id="btn-retornar">Adicionar Nova Função</button></a>
+        <a href="{{ url_for('index') }}"><button id="btn-retornar">Voltar para tela inicial</button></a>
         </div>
    
-
+        
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

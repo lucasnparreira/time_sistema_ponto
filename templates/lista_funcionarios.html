@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Funcionários</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     {% include 'menu.html' %}
@@ -27,11 +28,14 @@
                     <td>{{ funcionario.matricula }}</td>
                     <td>{{ funcionario.nome }}</td>
                     <td>{{ funcionario.funcao }}</td>
+                    
                     <td class="action-buttons">
                         <!-- <a href="{{ url_for('get_funcionario', matricula=funcionario.matricula) }}"><button>Ver</button></a> -->
-                        <a href="{{ url_for('update_funcionario', matricula=funcionario.matricula) }}"><button>Editar</button></a>
+                        <a href="{{ url_for('update_funcionario', matricula=funcionario.matricula) }}"><i class="fas fa-edit"></i></a>
                         <form method="POST" action="{{ url_for('delete_funcionario', matricula=funcionario.matricula) }}" style="display:inline;">
-                            <button type="submit" onclick="return confirm('Tem certeza que deseja remover este funcionário?')">Remover</button>
+                            <button type="submit" style="border: none; color:red; background: none; align-items: center;">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </form>
                     </td>
                 </tr>
