@@ -47,8 +47,12 @@
         </tr>
     </tbody>
     {% endfor %}
-    {% else %}
-        <p>Não há funções cadastradas.</p>
+    
+    {% if message %}
+    <div class="alert alert-info">
+        {{ message }}
+    </div>
+    {% endif %}
     {% endif %}
     
 </table>

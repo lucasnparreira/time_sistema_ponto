@@ -12,6 +12,8 @@ app.config['SECRET_KEY'] = os.urandom(24)
 
 CORS(app, resources={r"/*": {"origins": "*"}})
 
+app.jinja_env.cache = None
+
 api_url = "http://localhost:5000"
 
 def login_required(f):
@@ -300,43 +302,47 @@ def list_enderecos():
 @app.route('/departamento', methods=['GET', 'POST'])
 def add_departamento():
     if request.method == 'POST':
-        # Recebe os dados do formulário
         descricao = request.form.get('descricao')
 
-        # Verifica se a descrição foi preenchida
         if not descricao:
             return render_template('add_departamento.html', mensagem="Dados incompletos")
+        try:
 
-        # Envia os dados para a API no formato JSON
-        response = requests.post(f"{api_url}/departamentos", json={"descricao": descricao})
+            response = requests.post(f"{api_url}/departamento", json={"descricao": descricao})
+            
+            print("Resposta da API:", response.status_code, response.text)
 
-        if response.status_code == 201:
-            return render_template('lista_departamentos.html', mensagem="Departamento adicionado com sucesso!")
-        else:
-            return render_template('add_departamento.html', mensagem="Erro ao adicionar o departamento")
-
+            if response.status_code == 200 or response.status_code == 201:
+                return redirect(url_for('list_departamentos'))
+            else:
+                return render_template('add_departamento.html', mensagem="Erro ao adicionar o departamento")
+        except requests.exceptions.RequestException as e:
+            return render_template('error.html', mensagem=f"Erro de conexão com a API: {str(e)}"), 500
+        
     return render_template('add_departamento.html')
 
 
 @app.route('/departamento/<int:id>', methods=['GET', 'POST'])
 def edit_departamento(id):
-    if request.method == 'POST':
-        descricao = request.form.get('descricao')  # Pegando a nova descrição
+    if request.method == 'POST' and request.form.get('_method') == 'PUT':
+        descricao = request.form.get('descricao')  
 
         if not descricao:
-            return render_template('error.html', message='Dados incompletos'), 400
+            return render_template('edit_departamento.html', message='Dados incompletos'), 400
 
         response = requests.put(f"{api_url}/departamento/{id}", json={"descricao": descricao})
 
-        if response.status_code == 201:
-            return render_template('success.html', message='Departamento atualizado com sucesso!'), 201
+        if response.status_code == 200 or response.status_code == 201:
+            departamento = requests.get(f"{api_url}/departamento/{id}").json()
+            #return redirect(url_for('list_departamentos')), 200
+            return render_template('edit_departamento.html', message='Departamento atualizado com sucesso!', departamento=departamento), 200
         else:
-            return render_template('error.html', message='Erro ao atualizar departamento'), response.status_code
+            return render_template('edit_departamento.html', message='Erro ao atualizar departamento'), response.status_code
 
     response = requests.get(f"{api_url}/departamento/{id}")
     
-    if response.status_code >= 200 and response.status_code <= 205:
-        return render_template('error.html', message='Departamento não encontrado'), 404
+    if response.status_code != 200:
+        return render_template('edit_departamento.html', message='Departamento não encontrado'), 404
 
     departamento = response.json()  
     
@@ -344,17 +350,20 @@ def edit_departamento(id):
 
 @app.route('/departamento/<int:id>/delete', methods=['POST'])
 def delete_departamento(id):
-    response = requests.get(f"{api_url}/departamento/{id}")
+    try:
+        response = requests.get(f"{api_url}/departamento/{id}")
+        if response.status_code != 200:
+            return render_template('error.html', message='Departamento não encontrado'), 404
 
-    if response.status_code != 200:
-        return render_template('error.html', message='Departamento não encontrado'), 404
+        response = requests.post(f"{api_url}/departamento/{id}/delete")
 
-    response = requests.delete(f"{api_url}/departamento/{id}")
+        if response.status_code == 200 or response.status_code == 201:
+            return redirect(url_for('list_departamentos'))
+        else:
+            return render_template('error.html', message=f'Erro ao deletar departamento: {response.text}'), response.status_code
 
-    if response.status_code == 200:
-        return render_template('success.html', message='Departamento deletado com sucesso!'), 200
-    else:
-        return render_template('error.html', message='Erro ao deletar departamento'), response.status_code
+    except requests.exceptions.RequestException as e:
+        return render_template('error.html', message=f'Erro de conexão com a API: {str(e)}'), 500
 
 @app.route('/departamento/<int:id>', methods=['GET'])
 def view_departamento(id):
@@ -395,26 +404,25 @@ def add_funcao():
         response = requests.post(f"{api_url}/funcao", json={"descricao": descricao})
 
         if response.status_code == 201:
-            return render_template('list_funcoes.html', mensagem="Departamento adicionado com sucesso!")
+            return render_template('add_funcao.html', mensagem="Funcao adicionada com sucesso!"), 200
         else:
-            return render_template('add_funcao.html', mensagem="Erro ao adicionar o departamento")
+            return render_template('add_funcao.html', mensagem="Erro ao adicionar o funcao"), 404
 
     return render_template('add_funcao.html')
 
 @app.route('/funcao/<int:id>', methods=['GET', 'POST'])
 def edit_funcao(id):
     if request.method == 'GET':
-        # Buscar os dados da função da API
         response = requests.get(f"{api_url}/funcao/{id}")
         
         if response.status_code == 200:
-            data = response.json()
-            funcao = data.get('funcao', {})
-            
+            funcao = response.json().get('funcao', {})  
+        
             if funcao:
-                return render_template('edit_funcao.html', funcao=funcao)
+                #return redirect(url_for('list_funcoes')), 200
+                return render_template('edit_funcao.html', funcao=funcao), 200
             else:
-                return render_template('error.html', message='Função não encontrada'), 404
+                return render_template('edit_funcao.html', message='Função não encontrada', funcao=None), 404
         
         return render_template('error.html', message='Erro ao buscar a função'), 404
 
@@ -423,61 +431,58 @@ def edit_funcao(id):
         
         response = requests.put(f"{api_url}/funcao/{id}", json={'descricao': descricao})
         
-        if response.status_code == 200:
-            return render_template('success.html', message='Função atualizada com sucesso!')
+        if response.status_code == 200:  
+            funcao = response.json().get('funcao', {}) 
+            return render_template('edit_funcao.html', message='Função atualizada com sucesso!', funcao=funcao), 200
         else:
-            return render_template('error.html', message=f'Erro ao atualizar função: {response.text}'), 500
+            return render_template('edit_funcao.html', message=f'Erro ao atualizar função: {response.text}', funcao=None), 500
 
 @app.route('/funcao/<int:id>/delete', methods=['POST'])
 def delete_funcao(id):
-    response = requests.get(f"{api_url}/funcao/{id}")
+    try:
+        response = requests.get(f"{api_url}/funcao/{id}", headers={"Cache-Control": "no-cache"})
+        
+        if response.status_code != 200:
+            return render_template('list_funcoes.html', message='Função não encontrada'), 404
+        
+        response = requests.delete(f"{api_url}/funcao/{id}/delete", headers={"Cache-Control": "no-cache"})
+        
+        if response.status_code == 204:
+            #return redirect(url_for('list_funcoes')), 200
+            return render_template('list_funcoes.html', message='Função deletada com sucesso!'), 200
+        else:
+            return render_template('list_funcoes.html', message='Erro ao deletar função'), response.status_code
 
-    if response.status_code != 200:
-        return render_template('error.html', message='Função não encontrada'), 404
+    except requests.exceptions.RequestException as e:
+        return render_template('error.html', message=f'Erro de conexão com a API: {str(e)}'), 500
 
-    response = requests.delete(f"{api_url}/funcao/{id}")
-
-    if response.status_code == 201:
-        return render_template('success.html', message='Função deletada com sucesso!'), 201
-    else:
-        return render_template('error.html', message='Erro ao deletar função'), response.status_code
-
-# @app.route('/funcao/<int:id>', methods=['GET'])
-# def view_funcao(id):
-#     response = requests.get(f"{api_url}/funcao/{id}")
-
-#     if response.status_code == 200:
-#         funcao = response.json()
-#         return render_template('view_funcao.html', funcao=funcao), 200
-#     else:
-#         return render_template('error.html', message='Função não encontrada'), 404
-
-@app.route('/funcoes')
+@app.route('/funcoes', methods=['GET'])
 def list_funcoes():
+    message = request.args.get('message')
     response = requests.get(f"{api_url}/funcoes")
 
     if response.status_code == 200:
-        funcoes = response.json()
+        funcoes = response.json().get('funcoes', [])
 
         if isinstance(funcoes, dict) and 'funcoes' in funcoes:
             funcoes = funcoes['funcoes']
 
-        return render_template('list_funcoes.html', funcoes=funcoes), 200
+        return render_template('list_funcoes.html', funcoes=funcoes, message=message), 200
     else:
-        return render_template('message.html', message='Tabela de funções vazia.'), 200
-
+        return render_template('list_funcoes.html', funcoes=[], message='Tabela de funções vazia.'), 200
+    
 @app.route('/evento', methods=['GET', 'POST'])
 def add_evento():
     if request.method == 'POST':
-        # Recebe os dados do formulário
+        codigo = request.form.get('codigo')
         descricao = request.form.get('descricao')
 
         # Verifica se a descrição foi preenchida
-        if not descricao:
+        if not descricao and not codigo:
             return render_template('add_evento.html', mensagem="Dados incompletos")
 
         # Envia os dados para a API no formato JSON
-        response = requests.post(f"{api_url}/evento", json={"descricao": descricao})
+        response = requests.post(f"{api_url}/evento/novo", json={"codigo":codigo,"descricao": descricao})
 
         if response.status_code == 201:
             return render_template('list_eventos.html', mensagem="Departamento adicionado com sucesso!")
@@ -486,29 +491,51 @@ def add_evento():
 
     return render_template('add_evento.html')
 
-@app.route('/evento/<int:id>', methods=['PUT'])
+@app.route('/evento/<int:id>', methods=['GET','POST'])
 def edit_evento(id):
-    data = request.json
-    codigo = data.get('codigo')
-    descricao = data.get('descricao')
+    if request.method == 'GET':
+        response = requests.get(f"{api_url}/evento/{id}")
+        
+        if response.status_code == 200:
+            evento = response.json().get('evento', {})  
+        
+            if evento:
+                return render_template('edit_evento.html', evento=evento), 200
+            else:
+                return render_template('edit_evento.html', message='evento não encontrado', evento=[]), 404
+        
+        return render_template('error.html', message='Erro ao buscar a evento'), 404
 
-    response = requests.put(f"{api_url}/eventos/{id}", json={'codigo': codigo, 'descricao': descricao})
+    elif request.method == 'POST':
+        codigo = request.form.get('codigo')
+        descricao = request.form.get('descricao')
+        
+        response = requests.put(f"{api_url}/evento/{id}", json={'codigo':codigo,'descricao': descricao})
+        
+        if response.status_code == 200:  
+            evento = response.json().get('evento', {}) 
+            return render_template('edit_evento.html', message='evento atualizado com sucesso!', evento=evento), 200
+        else:
+            return render_template('edit_evento.html', message=f'Erro ao atualizar evento: {response.text}', evento=None), 500
 
-    if response.status_code == 200:
-        return render_template('success.html', message='Evento atualizado com sucesso!')
-    else:
-        return render_template('error.html', message='Erro ao atualizar evento'), 500
-
-
+    
 @app.route('/evento/<int:id>/delete', methods=['POST'])
 def delete_evento(id):
-    response = requests.delete(f"{api_url}/eventos/{id}")
+    try:
+        response = requests.get(f"{api_url}/evento/{id}", headers={"Cache-Control": "no-cache"})
+        
+        if response.status_code != 200:
+            return render_template('list_eventos.html', message='evento não encontrado'), 404
+        
+        response = requests.delete(f"{api_url}/evento/{id}", headers={"Cache-Control": "no-cache"})
+        
+        if response.status_code == 204:
+            return render_template('list_eventos.html', message='evento deletada com sucesso!'), 200
+        else:
+            return render_template('list_eventos.html', message='Erro ao deletar evento'), response.status_code
 
-    if response.status_code == 200:
-        return render_template('success.html', message='Evento deletado com sucesso!')
-    else:
-        return render_template('error.html', message='Erro ao deletar evento'), 500
-
+    except requests.exceptions.RequestException as e:
+        return render_template('error.html', message=f'Erro de conexão com a API: {str(e)}'), 500
 
 @app.route('/evento/<int:id>', methods=['GET'])
 def view_evento(id):

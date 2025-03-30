@@ -407,7 +407,7 @@ def delete_departamento(id):
     conn.commit()
     conn.close()
 
-    return jsonify({'message': 'Departamento deletado com sucesso!'}), 201
+    return jsonify({'message': 'Departamento deletado com sucesso!'}), 200
 
 
 
@@ -516,7 +516,7 @@ def edit_funcao(id):
         return jsonify({'message': 'Função atualizada com sucesso!'}), 200
 
 
-@app.route('/funcao/<int:id>/delete', methods=['POST'])
+@app.route('/funcao/<int:id>/delete', methods=['DELETE'])
 # @login_required
 def delete_funcao(id):
     conn = get_db_connection()
@@ -533,7 +533,7 @@ def delete_funcao(id):
     conn.commit()
     conn.close()
 
-    return jsonify({'message': 'Funcao deletada com sucesso!'}), 201
+    return jsonify({'message': 'Funcao deletada com sucesso!'}), 204
 
 
 
@@ -561,10 +561,11 @@ def list_funcoes():
 
     cursor.execute('SELECT * FROM FUNCAO')
     funcoes = cursor.fetchall()
+    conn.close()
 
-    if not funcoes:
-        conn.close()
-        return jsonify({'message': 'Tabela de funções vazia'}), 200  # Retorna 200 OK se não houver funções
+    # if not funcoes:
+    #     conn.close()
+    #     return jsonify({'message': 'Tabela de funções vazia'}), 200  # Retorna 200 OK se não houver funções
     
     funcoes_json = [
         {
@@ -574,7 +575,7 @@ def list_funcoes():
         for funcao in funcoes
     ]
 
-    conn.close()
+    
 
     return jsonify({'funcoes': funcoes_json}), 200
 
@@ -598,33 +599,54 @@ def add_evento():
     return jsonify({'message': 'Evento criado com sucesso!'}), 201
 
 
-@app.route('/evento/<int:id>', methods=['PUT'])
-# @login_required
+@app.route('/evento/<int:id>', methods=['GET', 'PUT'])
 def edit_evento(id):
-    data = request.json
-    codigo = data.get('codigo')
-    descricao = data.get('descricao')
-
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute('SELECT * FROM EVENTO WHERE id = ?', (id,))
-    evento = cursor.fetchone()
+    if request.method == 'GET':
+        cursor.execute('SELECT * FROM EVENTO WHERE id = ?', (id,))
+        evento = cursor.fetchone()
 
-    if not evento:
+        if not evento:
+            conn.close()
+            return jsonify({'error': 'Evento não encontrado'}), 404
+
+        evento_json = {
+            "id": evento[0],
+            "codigo": evento[1],
+            "descricao": evento[2]
+        }
+
         conn.close()
-        return jsonify({'error': 'Evento não encontrado'}), 404
+        return jsonify({'evento': evento_json}), 200
 
-    cursor.execute('UPDATE EVENTO SET codigo = ?, descricao = ? WHERE id = ?', (codigo, descricao, id))
-    conn.commit()
-    conn.close()
+    elif request.method == 'PUT':
+        data = request.json
+        codigo = data.get('codigo')
+        descricao = data.get('descricao')
 
-    return jsonify({'message': 'Evento atualizado com sucesso!'})
+        cursor.execute('SELECT * FROM EVENTO WHERE id = ?', (id,))
+        evento = cursor.fetchone()
+
+        if not evento:
+            conn.close()
+            return jsonify({'error': 'Evento não encontrado'}), 404
+
+        cursor.execute('UPDATE EVENTO SET codigo = ?, descricao = ? WHERE id = ?', (codigo, descricao, id))
+        conn.commit()
+        conn.close()
+
+        return jsonify({'message': 'Evento atualizado com sucesso!'}), 200
 
 
-@app.route('/evento/<int:id>/delete', methods=['POST'])
+@app.route('/evento/<int:id>/delete', methods=['POST','DELETE'])
 # @login_required
 def delete_evento(id):
+    if request.method == 'POST':
+        if request.form.get('_method') == 'DELETE':
+            request.method = 'DELETE'
+            
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -639,9 +661,7 @@ def delete_evento(id):
     conn.commit()
     conn.close()
 
-    return jsonify({'message': 'Evento deletado com sucesso!'})
-
-
+    return jsonify({'message': 'Evento deletado com sucesso!'}), 204
 
 @app.route('/evento/<int:id>', methods=['GET'])
 # @login_required

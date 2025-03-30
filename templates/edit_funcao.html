@@ -11,16 +11,18 @@
     {% include 'menu.html' %}
     <div class="container-relatorios">
     <h2>Editar Função</h2>
-    <form action="/funcao/{{ funcao.id }}" method="POST">
-        <input type="hidden" name="_method" value="PUT">
-        <label for="descricao">Descrição:</label>
-        <input type="text" id="descricao" name="descricao" value="{{ funcao.descricao }}" required>
-        <button type="submit">Atualizar Função</button>
-    </form>
-    <a href="{{ url_for('list_funcoes') }}"><button id="btn-retornar">Cancelar</button></a>
-    {% if message %}
+    {% if funcao %}
+        <form action="{{ url_for('edit_funcao', id=funcao['id']) }}" method="POST">
+            <label for="descricao">Descrição:</label>
+            <input type="text" id="descricao" name="descricao" value="{{ funcao['descricao'] }}" required><br><br>
+            <button type="submit">Atualizar Função</button>
+        </form>
+    {% else %}
         <p>{{ message }}</p>
     {% endif %}
+
+    <a href="{{ url_for('list_funcoes') }}"><button id="btn-retornar">Voltar</button></a>
+
     </div>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

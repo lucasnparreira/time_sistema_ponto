@@ -5,18 +5,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Evento</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Editar Evento</h1>
-    <form action="/evento/{{ evento.id }}" method="POST">
-        <input type="hidden" name="_method" value="PUT">
-        <label for="codigo">Código do Evento:</label><br>
-        <input type="text" id="codigo" name="codigo" value="{{ evento.codigo }}" required><br><br>
-        <label for="descricao">Descrição:</label><br>
-        <input type="text" id="descricao" name="descricao" value="{{ evento.descricao }}" required><br><br>
+    {% include 'menu.html' %}
+<div class="container-relatorios">
+    <h2>Editar Evento</h2>
+    
+    {% if message %}
+    <div class="alert {% if 'sucesso' in message %}alert-success{% else %}alert-error{% endif %}">
+        {{ message }}
+    </div>
+    {% endif %}
+    
+    {% if evento %}
+    <form action="{{ url_for('edit_evento', id=evento.id) }}" method="POST">        
+        <label for="codigo">Código do Evento:</label>
+        <input type="text" id="codigo" name="codigo" value="{{ evento.codigo }}" required>
+        
+        <label for="descricao">Descrição:</label>
+        <input type="text" id="descricao" name="descricao" value="{{ evento.descricao }}" required>
+        
         <button type="submit">Atualizar Evento</button>
     </form>
-    <br>
-    <a href="/eventos">Voltar para lista de eventos</a>
+    {% endif %}
+    
+    <button id="btn-retornar"><a href="{{ url_for('list_eventos') }}">Voltar</a></button>
+</div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
