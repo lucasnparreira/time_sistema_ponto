@@ -2,7 +2,7 @@
 
 Este é um sistema de gerenciamento de ponto eletrônico desenvolvido em Python utilizando o framework Flask. O sistema permite gerenciar registros de entrada e saída de funcionários, filtrando os dados por funcionário e evento, e oferecendo uma interface simples e funcional.
 
-> **Aviso**: O frontend do sistema está em reformulação. Por enquanto, somente a API (api_backend.py) está funcionando 100%. Utilize ferramentas como Postman ou Insomnia para consumir a API.
+> **Aviso**: Aviso: O frontend do sistema foi atualizado, e agora você pode rodar tanto a API quanto o frontend no navegador para interagir com o sistema. Antes, a API (api_backend.py) estava funcionando 100%, mas agora você pode acessar o sistema diretamente pela interface gráfica.
 
 ## 🚀 Funcionalidades
 
@@ -60,12 +60,29 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-4. **Executar o projeto:**
+4. **Rodar o Backend (API)**
 
-Para rodar o projeto, basta executar o arquivo app.py:
+Para rodar o projeto, basta executar o arquivo app_backend.py:
 ```json
-python app.py
+python app_backend.py
 ```
+
+5. **Rodar o Frontend (API)**
+
+O frontend também é um aplicativo Flask. Para rodá-lo, execute o arquivo app_frontend.py (ou outro arquivo Flask que tenha configurado para o frontend):
+```json
+python app_frontend.py
+```
+
+6. **Acessar o Sistema no Navegador**
+Abra o navegador de sua preferência e acesse o sistema pelo seguinte link:
+
+Frontend: http://127.0.0.1:5001
+
+Backend (API): http://127.0.0.1:5000 — Utilize para testar diretamente os endpoints da API (se necessário, com ferramentas como Postman ou Insomnia).
+
+Agora, o sistema estará funcionando tanto pela interface web quanto pela API, e você pode gerenciar as funcionalidades diretamente no navegador.
+
 ## Diagrama da API
 ![alt text](static/diagram.png)
 
@@ -165,50 +182,3 @@ python app.py
 ### **/login**
 - **GET**: Exibir a tela de login.
 - **POST**: Realizar o login de um usuário.
-
-### 📡 Endpoints do Frontend (Para Integração com a API)
-Esses são os principais endpoints do frontend para interação com a API, ajudando a criar e atualizar dados no sistema de gerenciamento de ponto eletrônico.
-
-### /login
-**GET**: Exibe a tela de login.
-
-**POST**: Realiza a autenticação do usuário, iniciando uma sessão no sistema.
-
-### /home
-**GET**: Exibe a página inicial após o login.
-
-### /logout
-**GET**: Finaliza a sessão do usuário.
-
-### /funcionarios
-**GET**: Exibe a lista de todos os funcionários no frontend.
-
-**POST**: Envia os dados de um novo funcionário para a API e o cria no backend.
-
-### /funcionario/int:matricula
-**GET**: Exibe detalhes de um funcionário específico.
-
-**POST**: Atualiza as informações de um funcionário.
-
-**DELETE**: Deleta um funcionário específico.
-
-### /enderecos
-**GET**: Exibe a lista de todos os endereços no frontend.
-
-### /departamento
-**GET**: Exibe a lista de todos os departamentos no frontend.
-
-**POST**: Envia os dados de um novo departamento para a API e o cria no backend.
-
-### /funcao
-**GET**: Exibe a lista de todas as funções no frontend.
-
-**POST**: Envia os dados de uma nova função para a API e a cria no backend.
-
-### /ponto
-**GET**: Exibe os pontos registrados no frontend.
-
-**POST**: Envia os dados de um novo ponto para a API e o cria no backend.
-
-### /usuarios
-**GET**: Exibe a lista de todos os usuários no frontend.
