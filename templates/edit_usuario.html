@@ -1,0 +1,37 @@
+<!-- form_edit_evento.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Usuario</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    {% include 'menu.html' %}
+<div class="container-relatorios">
+    <h2>Editar Usuario</h2>
+    
+    {% if message %}
+    <div class="alert {% if 'sucesso' in message %}alert-success{% else %}alert-error{% endif %}">
+        {{ message }}
+    </div>
+    {% endif %}
+    
+    {% if usuario %}
+    <form action="{{ url_for('edit_usuario', id=usuario.id) }}" method="POST">        
+        
+        <label for="descricao">Dados usuario:</label>
+        <input type="text" id="nome" name="nome" value="{{ usuario.nome }}" placeholder="Nome para login do usuario" required>
+        <input type="password" id="senha" name="senha" value="{{ usuario.senha }}" placeholder="Informe nova senha" required>
+        
+        <button type="submit">Atualizar Usuario</button>
+    </form>
+    {% endif %}
+    
+    <button id="btn-retornar"><a href="{{ url_for('list_usuarios') }}">Voltar</a></button>
+</div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

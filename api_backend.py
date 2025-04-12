@@ -709,6 +709,7 @@ def list_eventos():
 @app.route('/ponto', methods=['GET', 'POST'])
 # @login_required
 def add_ponto():
+    conn = None 
     try:
         data = request.json
     
@@ -948,44 +949,51 @@ def add_usuario():
     if senha.strip() == '':
         return jsonify({"error":"Senha nao pode ser vazia"}), 400
     
+    conn = None 
     try:
         hashed_password = generate_password_hash(senha)
-    except Exception as e:
-        return jsonify({"error": f"Erro ao criptografar a senha: {e}"}), 500
-    
-    conn = get_db_connection()
-    cursor = conn.cursor()
 
-    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+    
         cursor.execute('INSERT INTO usuario (nome, senha) VALUES (?, ?)', (nome, hashed_password))
         conn.commit()
         return jsonify({"message": "Usuario cadastrado com sucesso!"}), 201
+    
     except Exception as e:
-        conn.rollback()
+        if conn:
+            conn.rollback()
         return jsonify({"error": f"Erro ao cadastrar o usuario: {e}"}), 500
+    
     finally:
-        cursor.close()
-        conn.close()
+        if conn:
+            conn.close()
 
 
 @app.route('/usuario/<int:id>', methods=['GET','PUT'])
 # @login_required
 def edit_usuario(id):
-    data = request.json
-    nome = data.get('nome')
-    senha = data.get('senha')
-
-    if not nome or not senha:
-        return jsonify({"error": "Nome e senha sao obrigatorios"}), 400
-    
-    hashed_password = generate_password_hash(senha)
-
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    if request.method == 'PUT':
-        nome = request.form['nome']
-        senha = request.form['senha']
+    if request.method == 'GET':
+        cursor.execute('SELECT * FROM usuario WHERE id = ?', (id,))
+        usuario = cursor.fetchone()
+        conn.close()
+
+        if not usuario:
+            return jsonify({"error": "Usuario nao encontrado"}), 404
+
+        usuario_dict = {"id": usuario[0], "nome": usuario[1]}
+        return jsonify({"usuario": usuario_dict}), 200
+    
+    elif request.method == 'PUT':
+        data = request.json 
+        nome = data.get('nome')
+        senha = data.get('senha')
+
+        if not nome or not senha:
+            return jsonify({"error": "Nome e senha sao obrigatorios"}), 400
 
         hashed_password = generate_password_hash(senha)
 
@@ -1001,7 +1009,7 @@ def edit_usuario(id):
 
         return jsonify({"message": "Usuario atualizado com sucesso!"})
 
-@app.route('/usuario/delete/<int:id>', methods=['DELETE'])
+@app.route('/usuario/<int:id>', methods=['POST','DELETE'])
 # @login_required
 def delete_usuario(id):
     conn = get_db_connection()
@@ -1013,7 +1021,7 @@ def delete_usuario(id):
     cursor.close()
     conn.close()
 
-    return jsonify({"message": "Usuario deletado com sucesso!"})
+    return jsonify({"message": "Usuario deletado com sucesso!"}), 200
 
 @app.route('/usuarios', methods=['GET'])
 # @login_required

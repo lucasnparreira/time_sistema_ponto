@@ -701,22 +701,16 @@ def add_usuario():
         senha = request.form.get('senha')
 
         # Verifica se o nome e senha foram preenchidos
-        if not nome or senha:
+        if not nome or not senha:
             return render_template('add_usuario.html', mensagem="Dados incompletos")
-
-        try:
-            hashed_password = generate_password_hash(senha)
-        except Exception as e:
-            return render_template('add_usuario.html', mensagem="Erro ao encriptografar senha!")
-
     
         # Envia os dados para a API no formato JSON
-        response = requests.post(f"{api_url}/usuario", json={"nome": nome, "senha":hashed_password})
+        response = requests.post(f"{api_url}/usuario", json={"nome": nome, "senha":senha})
 
         if response.status_code == 201:
-            return render_template('listar_usuarios.html', mensagem="Departamento adicionado com sucesso!")
+            return render_template('list_usuarios.html', mensagem="Usuario adicionado com sucesso!")
         else:
-            return render_template('add_usuario.html', mensagem="Erro ao adicionar o departamento")
+            return render_template('add_usuario.html', mensagem="Erro ao adicionar o usuario")
 
     return render_template('add_usuario.html')
 
@@ -734,29 +728,44 @@ def list_usuarios():
     else:
         return render_template('list_usuarios.html', message='Nenhum usuário encontrado'), 200
 
-@app.route('/usuario/<int:id>', methods=['GET','PUT'])
-@login_required
+@app.route('/usuario/<int:id>', methods=['GET','POST'])
+# @login_required
 def edit_usuario(id):
-    data = request.json
-    nome = data.get('nome')
-    senha = data.get('senha')
+    if request.method == 'GET':
+        response = requests.get(f"{api_url}/usuario/{id}")
 
-    response = requests.put(f"{api_url}/usuario/{id}", json={'nome': nome, 'senha': senha})
+        if response.status_code == 200:
+            usuario = response.json().get('usuario', {})
+            return render_template('edit_usuario.html', usuario=usuario)
+        else:
+            return render_template('error.html', message="Usuario nao encontrado")
+    
+    elif request.method == 'POST':
+        nome = request.form.get('nome')
+        senha = request.form.get('senha')
 
-    if response.status_code == 200:
-        return render_template('success.html', message='Usuario atualizado com sucesso!')
-    else:
-        return render_template('error.html', message='Erro ao atualizar usuario'), 500
+        if not nome or not senha:
+            return render_template('edit_usuario.html', message="Nome e senha obrigatorios!")
+        
 
-@app.route('/usuario/delete/<int:id>', methods=['DELETE'])
-@login_required
+        response = requests.put(f"{api_url}/usuario/{id}", json={'nome': nome, 'senha': senha})
+
+        if response.status_code == 200:
+            return render_template('list_usuarios.html', message='Usuario atualizado com sucesso!')
+        else:
+            return render_template('error.html', message='Erro ao atualizar usuario'), 500
+
+@app.route('/usuario/delete/<int:id>', methods=['POST'])
+# @login_required
 def delete_usuario(id):
     response = requests.delete(f"{api_url}/usuario/{id}")
 
     if response.status_code == 200:
-        return render_template('success.html', message='Usuario deletado com sucesso!')
+        flash('Usuário deletado com sucesso!', 'success')
+        return redirect(url_for('list_usuarios'))
     else:
-        return render_template('error.html', message='Erro ao deletar usuario'), 500
+        flash('Erro ao deletar usuário!', 'danger')
+        return redirect(url_for('list_usuarios'))
 
 
 if __name__ == '__main__':

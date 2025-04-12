@@ -30,11 +30,11 @@
                             <a href="{{ url_for('edit_usuario', id=usuario['id']) }}">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="{{ url_for('delete_usuario', id=usuario['id']) }}">
-                                <button type="submit" style="border: none; color:red; background: none; align-items: center;">
+                            <!-- <a href="{{ url_for('delete_usuario', id=usuario['id']) }}"> -->
+                                <button type="submit" style="border: none; color:red; background: none; align-items: center;" onclick="deleteUsuario({{ usuario['id'] }})">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
-                            </a>
+                            <!-- </a> -->
                         </td>
                     </tr>
                 {% endfor %}
@@ -47,5 +47,20 @@
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        function deleteUsuario(id) {
+            if (confirm("Tem certeza que deseja deletar?")) {
+                fetch(`/usuario/delete/${id}`, { method: 'POST' })
+                    .then(response => {
+                        if (response.ok) {
+                            window.location.reload();
+                        } else {
+                            alert("Erro ao deletar usuário.");
+                        }
+                    });
+            }
+        }
+
+    </script>
 </body>
 </html>
