@@ -5,12 +5,15 @@ from functools import wraps
 import sqlite3
 import os
 from flask_cors import CORS
+from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = os.urandom(24)
 
 CORS(app, resources={r"/*": {"origins": "*"}})
+
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 def get_db_connection():
     conn = sqlite3.connect('app.db')
@@ -1184,5 +1187,34 @@ def importar_ponto():
         if conn:
             conn.close()
 
+# estrutura para mensageria 
+@app.route('/')
+def index():
+    return render_template('chat.html')
+
+@app.route('/enviar_mensagem', methods=['POST'])
+def enviar_mensagem():
+    data = request.get_json()
+    remetente = data.get('remetente')
+    destinatario = data.get('destinatario')
+    mensagem = data.get('mensagem')
+
+    if not(remetente and destinatario and mensagem):
+        return jsonify({'error': 'Dados incompletos'}), 400
+    
+    socketio.emit('nova_mensagem', {
+        'remetente': remetente,
+        'destinatario': destinatario,
+        'mensagem': mensagem
+    })
+
+    return jsonify({'message': 'Mensagem enviada com sucesso'}), 201 
+
+@socketio.on('mensagem')
+def handle_message(data):
+    print('Mensagem recebida:', data['mensagem'])
+    emit('mensagem', data, broadcast=True)
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    #app.run(debug=True)
+    socketio.run(app, debug=True)

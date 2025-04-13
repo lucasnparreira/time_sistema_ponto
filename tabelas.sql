@@ -2,7 +2,31 @@ CREATE TABLE IF NOT EXISTS USUARIO (
     id INTEGER PRIMARY KEY,
     nome TEXT NOT NULL,
     senha TEXT NOT NULL, -- Idealmente armazenar um hash da senha
-    data date CURRENT_DATE -- Considerar renomear para `data_criacao` ou `data_registro`
+    data date CURRENT_DATE, -- Considerar renomear para `data_criacao` ou `data_registro`
+    matricula TEXT NULL
+);
+
+CREATE TABLE IF NOT EXISTS CONVERSA (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    titulo TEXT
+);
+
+CREATE TABLE IF NOT EXISTS MENSAGEM (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    conversa_id INTEGER NOT NULL,
+    usuario_id INTEGER NOT NULL,
+    conteudo TEXT NOT NULL,
+    data_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (conversa_id) REFERENCES CONVERSA (id),
+    FOREIGN KEY (usuario_id) REFERENCES USUARIO (id)
+);
+
+CREATE TABLE IF NOT EXISTS PARTICIPANTE (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    conversa_id INTEGER NOT NULL,
+    usuario_id INTEGER NOT NULL,
+    FOREIGN KEY (conversa_id) REFERENCES CONVERSA (id),
+    FOREIGN KEY (usuario_id) REFERENCES USUARIO (id)
 );
 
 CREATE TABLE IF NOT EXISTS EVENTO (

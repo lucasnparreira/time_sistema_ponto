@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat de Ponto</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        #chat-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"] {
+            padding: 5px;
+            width: 300px;
+        }
+
+    </style>
+</head>
+<body>
+    <h2>Chat de Ajustes de Ponto</h2>
+    <div id="chat-box"></div>
+    <input type="text" id="mensagem" placeholder="Digite sua mensagem...">
+    <button onclick="enviarMensagem()">Enviar</button>
+
+    <script>
+        const socket = io();
+
+        socket.on('mensagem', function(data) {
+            const chatBox = document.getElementById('chat-box');
+            const msg = document.createElement('div');
+            msg.textContent = data.mensagem;
+            chatBox.appendChild(msg);
+        });
+
+        function enviarMensagem() {
+            const mensagem = document.getElementById('mensagem').value;
+            socket.emit('mensagem', { mensagem: mensagem });
+            document.getElementById('mensagem').value = '';
+        }
+    </script>
+</body>
+</html>
