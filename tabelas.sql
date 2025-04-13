@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS PONTO (
     id INTEGER PRIMARY KEY,
     funcionario INTEGER,
     data TEXT NOT NULL,
-    hora_entrada TEXT NOT NULL,
-    hora_saida TEXT NOT NULL,
+    hora_entrada TEXT NULL,
+    hora_saida TEXT NULL,
  -- Definir o tipo da coluna
     evento INTEGER, -- Definir o tipo da coluna
     FOREIGN KEY (funcionario) REFERENCES funcionario(matricula),

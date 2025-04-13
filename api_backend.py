@@ -1,9 +1,11 @@
+from datetime import datetime 
 from flask import Flask, redirect, request, jsonify, render_template, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import sqlite3
 import os
 from flask_cors import CORS
+
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = os.urandom(24)
@@ -1080,6 +1082,107 @@ def get_matricula_by_nome(nome):
         return resultado['matricula']
     else:
         return None
+    
+@app.route('/importar_ponto', methods=['POST'])
+def importar_ponto():
+    conn = None
+    cursor = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        if 'file' not in request.files:
+            return jsonify({'error': 'Nenhum arquivo enviado'}), 400
+        
+        arquivo = request.files['file']
+
+        if arquivo.filename == '':
+            return jsonify({'error': 'Nome de arquivo inválido'}), 400
+
+        # Garante que a pasta temp existe
+        os.makedirs('temp', exist_ok=True)
+
+        caminho_temp = os.path.join('temp', arquivo.filename)
+        arquivo.save(caminho_temp)
+
+        with open(caminho_temp, 'r') as f:
+            for linha in f:
+                dados = linha.strip().split('|')
+                if len(dados) < 3:
+                    print(f'Linha com formato inválido: {linha.strip()}')
+                    continue
+
+                matricula_funcionario, data_ponto, hora = dados
+
+                cursor.execute('SELECT matricula FROM FUNCIONARIO WHERE matricula = ?', (matricula_funcionario,))
+                if not cursor.fetchone():
+                    print(f'Funcionario {matricula_funcionario} não encontrado, linha ignorada')
+                    continue
+
+                try:
+                    data_obj = datetime.strptime(data_ponto, '%Y-%m-%d')
+                except ValueError:
+                    print(f'Data inválida: {data_ponto}')
+                    continue
+
+                dia_semana = data_obj.weekday()
+
+                def classificar_evento(hora):
+                    if dia_semana >= 5:
+                        return 4
+                    if '08:00' <= hora <= '17:00':
+                        return 1
+                    return 4
+
+                evento_entrada = classificar_evento(hora)
+                evento_saida = classificar_evento(hora)
+
+                evento = evento_entrada if evento_entrada == evento_saida else None
+
+                cursor.execute(''' 
+                    SELECT id, hora_entrada, hora_saida
+                    FROM PONTO 
+                    WHERE funcionario = ? AND data = ?
+                ''', (matricula_funcionario, data_ponto))
+
+                registro_existente = cursor.fetchone()
+
+                if registro_existente:
+                    id_registro, hora_entrada_existente, hora_saida_existente = registro_existente
+                
+                    if not hora_entrada_existente:
+                        cursor.execute(''' 
+                            UPDATE PONTO 
+                            SET hora_entrada = ?, evento = ?
+                            WHERE id = ?
+                        ''', (hora, evento_entrada, id_registro))
+                elif not hora_saida_existente:
+                     cursor.execute(''' 
+                            UPDATE PONTO 
+                            SET hora_saida = ?, evento = ?
+                            WHERE id = ?
+                        ''', (hora, evento_saida, id_registro))
+                else:
+                    cursor.execute('''
+                    INSERT INTO PONTO (funcionario, data, hora_entrada, hora_saida, evento)
+                    VALUES (?, ?, ?, ?, ?)
+                ''', (matricula_funcionario, data_ponto, hora, None, evento))
+
+            conn.commit()
+
+        return jsonify({'message': 'Arquivo processado com sucesso!'}), 201
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(f"Erro na importação: {e}")
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 if __name__ == '__main__':
     app.run(debug=True)

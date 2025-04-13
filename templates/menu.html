@@ -1,50 +1,51 @@
-<div class="dropdown">
-    <button class="dropbtn" onclick="openNav()"> 
-        <!-- <img src="img/menu.png" id="menu-img" alt="menu"> -->
-        <i class="fa fa-caret-down"></i>
-        ☰ Menu
-    </button>
-    <div style="color: black;">
-    {% if session['user_nome'] %}
-            <p>Bem vindo, {{ session['user_nome'] }}!</p>
+<div class="menu-container">
+    <button class="menu-btn" onclick="toggleMenu()">☰ Menu</button>
+
+    <div id="dropdownMenu" class="menu-dropdown">
+        {% if session['user_nome'] %}
+            <p>Bem-vindo, {{ session['user_nome'] }}!</p>
         {% else %}
             <p>Por favor, faça o login.</p>
         {% endif %}
-    </div>
-    <div id="mySidenav" class="sidenav">
-        <ul>
-            <ol><a href="/">Home</a></ol>
-            {% if not session['user_nome'] %}
-                <ol><a href="/login" onclick="closeNav()">Login</a></ol>
-            {% else %}
-                <ol><a href="/">Cadastro</a></ol>
-                <ul>
-                    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-                    <ol><a href="/funcionario" onclick="closeNav()">Funcionário</a></ol>
-                    <!-- <li><a href="/endereco/novo">Endereço</a></li> -->
-                    <ol><a href="/ponto" onclick="closeNav()">Ponto</a></ol>
-                    <ol><a href="/departamento" onclick="closeNav()">Departamento</a></ol>
-                    <ol><a href="/funcao" onclick="closeNav()">Função</a></ol>
-                    <ol><a href="/evento" onclick="closeNav()">Evento</a></ol>
-                    <ol><a href="/usuario" onclick="closeNav()">Usuário</a></ol>
-                </ul>
-                </ul>
 
-                <ul>
-                    <ol><a href="/">Relatório</a></ol>
-                    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-                    <ul>
-                        <!-- <ol><a href="/" onclick="closeNav()">Home</a></ol> -->
-                        <ol><a href="/funcionarios" onclick="closeNav()">Funcionário</a></ol>
-                        <!-- <li><a href="/endereco/novo">Endereço</a></li> -->
-                        <ol><a href="/pontos" onclick="closeNav()">Ponto</a></ol>
-                        <ol><a href="/departamentos" onclick="closeNav()">Departamento</a></ol>
-                        <ol><a href="/funcoes" onclick="closeNav()">Função</a></ol>
-                        <ol><a href="/eventos" onclick="closeNav()">Evento</a></ol>
-                        <ol><a href="/usuarios" onclick="closeNav()">Usuário</a></ol>
-                    </ul>
-                </ul>
-            {% endif %}
+        <a href="/">🏠 Home</a>
+
+        {% if not session['user_nome'] %}
+            <a href="/login">🔐 Login</a>
+        {% else %}
+
+            <div class="menu-section">
+                <button class="section-btn" onclick="toggleSection('cadastro')">Cadastro ▼</button>
+                <div id="cadastro" class="section-content">
+                    <a href="/funcionario">Funcionário</a>
+                    <a href="/ponto">Ponto</a>
+                    <a href="/departamento">Departamento</a>
+                    <a href="/funcao">Função</a>
+                    <a href="/evento">Evento</a>
+                    <a href="/usuario">Usuário</a>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <button class="section-btn" onclick="toggleSection('relatorio')">Relatório ▼</button>
+                <div id="relatorio" class="section-content">
+                    <a href="/funcionarios">Funcionários</a>
+                    <a href="/pontos">Pontos</a>
+                    <a href="/departamentos">Departamentos</a>
+                    <a href="/funcoes">Funções</a>
+                    <a href="/eventos">Eventos</a>
+                    <a href="/usuarios">Usuários</a>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <button class="section-btn" onclick="toggleSection('importar')">Importar Pontos ▼</button>
+                <div id="importar" class="section-content">
+                    <a href="{{ url_for('importar_ponto_frontend') }}">📄 Importar Pontos via TXT</a>
+                </div>
+            </div>
             
+
+        {% endif %}
     </div>
 </div>

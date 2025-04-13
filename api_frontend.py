@@ -767,6 +767,22 @@ def delete_usuario(id):
         flash('Erro ao deletar usuário!', 'danger')
         return redirect(url_for('list_usuarios'))
 
+@app.route('/importar_ponto', methods=['GET','POST'])
+def importar_ponto_frontend():
+    if request.method == 'POST':
+        file = request.files.get('file')
+
+        if not file:
+            return render_template('importar_ponto.html', message='Nenhum arquivo selecionado')
+        
+        response = requests.post(f"{api_url}/importar_ponto", files={'file': file })
+
+        if response.status_code == 201:
+            return render_template('importar_ponto.html', message='Arquivo importado com sucesso')
+        else:
+            return render_template('importar_ponto.html', message=f'Erro na importacao: {response.json().get("error", "Erro desconhecido")}')
+        
+    return render_template('importar_ponto.html')
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8000, debug=True)
