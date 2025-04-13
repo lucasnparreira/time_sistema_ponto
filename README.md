@@ -2,7 +2,7 @@
 
 Este é um sistema de gerenciamento de ponto eletrônico desenvolvido em Python utilizando o framework Flask. O sistema permite gerenciar registros de entrada e saída de funcionários, filtrando os dados por funcionário e evento, e oferecendo uma interface simples e funcional.
 
-> **Aviso**: Aviso: O frontend do sistema foi atualizado, e agora você pode rodar tanto a API quanto o frontend no navegador para interagir com o sistema. Antes, a API (api_backend.py) estava funcionando 100%, mas agora você pode acessar o sistema diretamente pela interface gráfica.
+> **Aviso**: O frontend do sistema foi atualizado, e agora você pode rodar tanto a API quanto o frontend no navegador para interagir com o sistema. Antes, a API (api_backend.py) estava funcionando 100%, mas agora você pode acessar o sistema diretamente pela interface gráfica.
 
 ## 🚀 Funcionalidades
 
