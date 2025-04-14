@@ -45,6 +45,12 @@
                 </div>
             </div>
             
+            <div class="menu-section">
+                <button class="section-btn" onclick="toggleSection('chat')">Chat ▼</button>
+                <div id="chat" class="section-content">
+                    <a href="{{ url_for('chat') }}">📄 Chat</a>
+                </div>
+            </div>
 
         {% endif %}
     </div>

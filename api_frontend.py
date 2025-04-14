@@ -1,5 +1,6 @@
-from flask import Flask, redirect, request, jsonify, render_template, url_for, session, flash
+from flask import Flask, Response, redirect, request, jsonify, render_template, url_for, session, flash
 from flask_cors import CORS
+from flask_socketio import SocketIO
 import requests
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
@@ -11,6 +12,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
 
 CORS(app, resources={r"/*": {"origins": "*"}})
+
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 app.jinja_env.cache = None
 
@@ -783,6 +786,34 @@ def importar_ponto_frontend():
             return render_template('importar_ponto.html', message=f'Erro na importacao: {response.json().get("error", "Erro desconhecido")}')
         
     return render_template('importar_ponto.html')
+
+BACKEND_URL = 'http://127.0.0.1:5000'  # URL do backend de mensageria
+@app.route('/chat')
+def chat():
+    return render_template('chat.html')
+
+@app.route('/conversas')
+def proxy_conversas():
+    resposta = requests.get(f'{BACKEND_URL}/conversas')
+    return Response(resposta.content, status=resposta.status_code, content_type=resposta.headers['Content-Type'])
+
+@app.route('/conversas', methods=['POST'])
+def criar_conversa():
+    # Encaminha a solicitação POST para o backend de mensagens
+    response = requests.post(f'{BACKEND_URL}/conversas', json=request.get_json())
+    return jsonify(response.json()), response.status_code
+
+@app.route('/conversas', methods=['GET'])
+def listar_conversas():
+    # Encaminha a solicitação GET para o backend de mensagens
+    response = requests.get(f'{BACKEND_URL}/conversas')
+    return jsonify(response.json()), response.status_code
+
+@app.route('/conversas/<int:conversa_id>/mensagens', methods=['GET'])
+def listar_mensagens(conversa_id):
+    # Encaminha a solicitação GET para o backend de mensagens
+    response = requests.get(f'{BACKEND_URL}/conversas/{conversa_id}/mensagens')
+    return jsonify(response.json()), response.status_code
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8000, debug=True)

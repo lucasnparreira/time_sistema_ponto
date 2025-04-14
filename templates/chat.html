@@ -1,51 +1,123 @@
-<!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-    <title>Chat de Ponto</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+    <meta charset="UTF-8">
+    <title>Chat Ponto em Tempo Real</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
-
-        #chat-box {
-            border: 1px solid #ccc;
-            padding: 10px;
-            height: 300px;
-            overflow-y: scroll;
-            margin-bottom: 10px;
-        }
-
-        input[type="text"] {
-            padding: 5px;
-            width: 300px;
-        }
-
+        #chat { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 10px; }
+        .msg { margin: 5px 0; }
     </style>
 </head>
 <body>
-    <h2>Chat de Ajustes de Ponto</h2>
-    <div id="chat-box"></div>
-    <input type="text" id="mensagem" placeholder="Digite sua mensagem...">
-    <button onclick="enviarMensagem()">Enviar</button>
 
-    <script>
-        const socket = io();
+<h2>Conversas disponíveis</h2>
+<div id="conversas"></div>
 
-        socket.on('mensagem', function(data) {
-            const chatBox = document.getElementById('chat-box');
-            const msg = document.createElement('div');
-            msg.textContent = data.mensagem;
-            chatBox.appendChild(msg);
-        });
+<h3>Criar nova conversa</h3>
+<input type="text" id="tituloConversa" placeholder="Título da conversa">
+<button onclick="criarConversa()">Criar</button>
 
-        function enviarMensagem() {
-            const mensagem = document.getElementById('mensagem').value;
-            socket.emit('mensagem', { mensagem: mensagem });
-            document.getElementById('mensagem').value = '';
+<hr>
+
+<h2>Chat</h2>
+<div id="chat"></div>
+
+<input type="text" id="mensagem" placeholder="Digite sua mensagem">
+<button id="btnEnviar">Enviar</button>
+
+<script>
+    let socket = io('http://localhost:5000')
+    let conversaSelecionada = null;
+    let usuarioMatricula = prompt("Informe sua matrícula para se identificar:");
+
+    socket.on('connect', () => {
+        console.log("✅ Conectado ao WebSocket");
+    });
+
+    socket.on('nova_mensagem', (msg) => {
+        if (msg.conversa_id === conversaSelecionada) {
+            adicionarMensagem(`${msg.login_usuario}: ${msg.conteudo}`);
         }
-    </script>
+    });
+
+    function criarConversa() {
+        const titulo = document.getElementById('tituloConversa').value;
+        if (!titulo) return alert("Informe o título da conversa!");
+
+        fetch('/conversas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ titulo })
+        })
+        .then(res => res.json())
+        .then(data => {
+            carregarConversas();
+            document.getElementById('tituloConversa').value = '';
+        });
+    }
+
+    function carregarConversas() {
+        fetch('/conversas')
+            .then(res => res.json())
+            .then(data => {
+                const conversasDiv = document.getElementById('conversas');
+                conversasDiv.innerHTML = '';
+                data.forEach(c => {
+                    const btn = document.createElement('button');
+                    btn.innerText = c.titulo;
+                    btn.onclick = () => abrirConversa(c.id);
+                    conversasDiv.appendChild(btn);
+                });
+            });
+    }
+
+    function abrirConversa(conversaId) {
+        conversaSelecionada = conversaId;
+        document.getElementById('chat').innerHTML = '';
+
+        // Entra na sala
+        socket.emit('entrar_conversa', { conversa_id: conversaId });
+
+        // Busca histórico
+        fetch(`/conversas/${conversaId}/mensagens`)
+            .then(res => res.json())
+            .then(data => {
+                data.forEach(m => adicionarMensagem(`${m.login_usuario}: ${m.conteudo}`));
+            });
+    }
+
+    function adicionarMensagem(texto) {
+        const chatDiv = document.getElementById('chat');
+        const p = document.createElement('p');
+        p.className = 'msg';
+        p.innerText = texto;
+        chatDiv.appendChild(p);
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+    }
+
+    function enviarMensagem() {
+        if (!conversaSelecionada) {
+            alert("Abra uma conversa primeiro!");
+            return;
+        }
+        const texto = document.getElementById('mensagem').value;
+        if (texto.trim() === '') return;
+
+        const mensagem = {
+            conversa_id: conversaSelecionada,
+            login_usuario: usuarioMatricula,
+            conteudo: texto
+        };
+
+        console.log("📤 Enviando mensagem:", mensagem);
+        socket.emit('enviar_mensagem', mensagem);
+        document.getElementById('mensagem').value = '';
+    }
+
+    document.getElementById('btnEnviar').addEventListener('click', enviarMensagem);
+
+    carregarConversas();
+</script>
+
 </body>
 </html>

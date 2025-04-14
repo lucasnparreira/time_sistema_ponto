@@ -1,11 +1,11 @@
 from datetime import datetime 
-from flask import Flask, redirect, request, jsonify, render_template, url_for, session, flash
+from flask import Flask, json, redirect, request, jsonify, render_template, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import sqlite3
 import os
 from flask_cors import CORS
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO, emit, join_room
 
 app = Flask(__name__)
 
@@ -1188,33 +1188,124 @@ def importar_ponto():
             conn.close()
 
 # estrutura para mensageria 
-@app.route('/')
+@app.route('/chat')
 def index():
     return render_template('chat.html')
 
-@app.route('/enviar_mensagem', methods=['POST'])
-def enviar_mensagem():
+@app.route('/conversas', methods=['POST'])
+def criar_conversa():
     data = request.get_json()
-    remetente = data.get('remetente')
-    destinatario = data.get('destinatario')
-    mensagem = data.get('mensagem')
+    titulo = data.get('titulo')
 
-    if not(remetente and destinatario and mensagem):
-        return jsonify({'error': 'Dados incompletos'}), 400
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('INSERT INTO CONVERSA (titulo) VALUES (?)', (titulo,))
+    conversa_id = cursor.lastrowid
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({'id': conversa_id, 'titulo': titulo}), 201
+
+@app.route('/conversas', methods=['GET'])
+def listar_conversas():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT id, titulo FROM CONVERSA')
+    conversas = cursor.fetchall()
+
+    resultado = [{'id': c['id'], 'titulo': c['titulo']} for c in conversas]
+
+    cursor.close()
+    conn.close()
+
+    return jsonify(resultado)
+
+@app.route('/conversas/<int:conversa_id>/mensagens', methods=['GET'])
+def listar_mensagens(conversa_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(''' 
+        SELECT M.id, U.matricula as login_usuario, M.conteudo, M.data_hora
+        FROM MENSAGEM M
+        JOIN USUARIO U ON M.usuario_id = U.id
+        WHERE M.conversa_id = ?
+        ORDER BY M.data_hora ASC
+    ''', (conversa_id,))
+
+    mensagens = cursor.fetchall()
+
+    resultado = [{
+        'id': m['id'],
+        'login_usuario': m['login_usuario'],
+        'conteudo': m['conteudo'],
+        'data_hora': m['data_hora']
+    } for m in mensagens]
+
+    cursor.close()
+    conn.close()
+
+    return jsonify(resultado)
+
+@socketio.on('enviar_mensagem')
+def handle_enviar_mensagem(data):
+    print(f"Mensagem recebida: {data}")  # Verificando os dados recebidos
+
+    conversa_id = data.get('conversa_id')
+    login_usuario = data.get('login_usuario')
+    conteudo = data.get('conteudo')
+
+    print(f"Mensagem recebida: {conteudo}")
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Busca o id do usuário pela matricula
+    cursor.execute("SELECT id FROM USUARIO WHERE matricula = ?", (login_usuario,))
+    usuario = cursor.fetchone()
+
+    if not usuario:
+        emit('nova_mensagem', {'login_usuario': 'Sistema', 'conteudo': 'Usuário não encontrado'})
+        return
     
-    socketio.emit('nova_mensagem', {
-        'remetente': remetente,
-        'destinatario': destinatario,
-        'mensagem': mensagem
-    })
+    usuario_id = usuario['id']
 
-    return jsonify({'message': 'Mensagem enviada com sucesso'}), 201 
+    cursor.execute(''' 
+        INSERT INTO MENSAGEM (conversa_id, usuario_id, conteudo)
+        VALUES (?, ?, ?)
+    ''', (conversa_id, usuario_id, conteudo))
+    conn.commit()
 
-@socketio.on('mensagem')
-def handle_message(data):
-    print('Mensagem recebida:', data['mensagem'])
-    emit('mensagem', data, broadcast=True)
+    # Envia a mensagem para todos os participantes da conversa
+    emit('nova_mensagem', {
+        'conversa_id': conversa_id,
+        'login_usuario': login_usuario,
+        'conteudo': conteudo
+    }, broadcast=True)
+    
+    cursor.close()
+    conn.close()
+
+
+@socketio.on('entrar_conversa')
+def handle_entrar_conversa(data):
+    conversa_id = data.get('conversa_id')
+    join_room(f'conversa_{conversa_id}')
+    print(f"Usuario entrou na conversa {conversa_id}")
+
+@socketio.on('connect')
+def handle_connect():
+    print("Cliente conectado com sucesso!")
+    emit('message', {'data': 'Olá, cliente! Conexão bem-sucedida!'})
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print("Cliente desconectado.")
 
 if __name__ == '__main__':
     #app.run(debug=True)
-    socketio.run(app, debug=True)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True)

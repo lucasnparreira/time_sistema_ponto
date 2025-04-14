@@ -5,6 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Controle de Ponto</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        #chatBtn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        #chatBox {
+            display: none;
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 320px;
+            height: 450px;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #chatHeader {
+            background: #3498db;
+            color: white;
+            padding: 12px;
+            font-weight: bold;
+        }
+
+        #chatContent {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        #chatInput {
+            display: flex;
+            border-top: 1px solid #ccc;
+        }
+
+        #chatInput input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+        }
+
+        #chatInput button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            cursor: pointer;
+        }
+
+        .msg {
+            margin: 5px 0;
+        }
+    </style>
 </head>
 <body>
     {% include 'menu.html' %}
@@ -13,8 +87,87 @@
         <h1>Time</h1>
         <h2>Sistema de Controle de Ponto</h2>
     </div>
+    
+    <!-- Botão flutuante -->
+    <button id="chatBtn">💬</button>
 
+    <!-- Janela de chat -->
+    <div id="chatBox">
+        <div id="chatHeader">Chat</div>
+        <div id="chatContent"></div>
+        <div id="chatInput">
+            <input type="text" id="mensagem" placeholder="Digite sua mensagem">
+            <button onclick="enviarMensagem()">➤</button>
+        </div>
+    </div>
     <script src="/static/script.js"></script>
+    <script>
+        let socket = io('http://localhost:5000');
+        let conversaSelecionada = null;
+        let usuarioMatricula = prompt("Informe sua matrícula para se identificar:");
+    
+        socket.on('connect', () => {
+            console.log("✅ Conectado ao WebSocket");
+        });
+    
+        socket.on('nova_mensagem', (msg) => {
+            if (msg.conversa_id === conversaSelecionada) {
+                adicionarMensagem(`${msg.login_usuario}: ${msg.conteudo}`);
+            }
+        });
+    
+        function adicionarMensagem(texto) {
+            const chatContent = document.getElementById('chatContent');
+            const p = document.createElement('p');
+            p.className = 'msg';
+            p.innerText = texto;
+            chatContent.appendChild(p);
+            chatContent.scrollTop = chatContent.scrollHeight;
+        }
+    
+        function enviarMensagem() {
+            const texto = document.getElementById('mensagem').value;
+            if (texto.trim() === '' || !conversaSelecionada) return;
+    
+            const mensagem = {
+                conversa_id: conversaSelecionada,
+                login_usuario: usuarioMatricula,
+                conteudo: texto
+            };
+    
+            console.log("📤 Enviando mensagem:", mensagem);
+            socket.emit('enviar_mensagem', mensagem);
+            document.getElementById('mensagem').value = '';
+        }
+    
+        // Botão de abrir/fechar chat
+        document.getElementById('chatBtn').addEventListener('click', () => {
+            const chatBox = document.getElementById('chatBox');
+            chatBox.style.display = chatBox.style.display === 'flex' ? 'none' : 'flex';
+        });
+    
+        // Simula abrir uma conversa específica
+        function abrirConversa(id) {
+            conversaSelecionada = id;
+            socket.emit('entrar_conversa', { conversa_id: id });
+            document.getElementById('chatContent').innerHTML = '';
+    
+            fetch(`/conversas/${id}/mensagens`)
+                .then(res => res.json())
+                .then(data => {
+                    data.forEach(m => adicionarMensagem(`${m.login_usuario}: ${m.conteudo}`));
+                });
+        }
+    
+        // Só pra exemplo: carrega primeira conversa ao conectar
+        fetch('/conversas')
+            .then(res => res.json())
+            .then(data => {
+                if (data.length > 0) {
+                    abrirConversa(data[0].id);
+                }
+            });
+    </script>
 
 </body>
 </html>
