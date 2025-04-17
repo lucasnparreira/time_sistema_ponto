@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizar escala</title>
+</head>
+<body>
+    <h1>Visualizar escala</h1>
+    <p><strong>ID:</strong> {{ escala.id }}</p>
+    <p><strong>Descrição:</strong> {{ escala.descricao }}</p>
+    <a href="{{ url_for('edit_escala', id=escala.id) }}">Editar escala</a> |
+    <a href="{{ url_for('list_escalas') }}">Voltar para a lista</a>
+</body>
+</html>

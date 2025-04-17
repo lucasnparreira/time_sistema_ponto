@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar escala</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    {% include 'menu.html' %}
+    <div class="container-relatorios">
+        <h2>Editar escala</h2>
+        {% if escala %}
+        <form action="{{ url_for('edit_escala', id=escala['id']) }}" method="POST">
+            <input type="hidden" name="_method" value="PUT">
+            <label for="descricao">Descrição:</label>
+            <input type="text" id="descricao" name="descricao" value="{{ escala['descricao'] }}" required><br><br>
+            <button type="submit">Atualizar escala</button>
+        </form>
+        {% else %}
+            <p>escala não encontrado ou erro ao tentar editar.</p>
+        {% endif %}
+        <button id="btn-retornar"><a href="{{ url_for('list_escalas') }}">Voltar</a></button>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>

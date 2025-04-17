@@ -1187,6 +1187,112 @@ def importar_ponto():
         if conn:
             conn.close()
 
+@app.route('/escala', methods=['POST'])
+# @login_required
+def add_escala():
+    data = request.json
+    descricao = data.get('descricao')
+
+    if not descricao:
+        return jsonify({'error': 'Dados incompletos'}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('INSERT INTO escala (descricao) VALUES (?)', (descricao,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({'message': 'escala criado com sucesso!'}), 201
+
+@app.route('/escala/<int:id>', methods=['GET', 'PUT'])
+def edit_escala(id):
+    if request.method == 'GET':
+        # Busca a escala com o ID fornecido
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM escala WHERE id = ?', (id,))
+        escala = cursor.fetchone()
+        conn.close()
+
+        if not escala:
+            return jsonify({'error': 'escala não encontrada'}), 404
+
+        # Retorna os dados da escala em formato JSON
+        return jsonify({'id': escala[0], 'descricao': escala[1]}), 200
+
+    elif request.method == 'PUT':
+        # Atualiza a escala com os dados fornecidos no corpo da requisição
+        data = request.json
+        descricao = data.get('descricao')
+
+        if not descricao:
+            return jsonify({'error': 'Descrição é obrigatória'}), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM escala WHERE id = ?', (id,))
+        escala = cursor.fetchone()
+
+        if not escala:
+            conn.close()
+            return jsonify({'error': 'escala não encontrado'}), 404
+
+        cursor.execute('UPDATE escala SET descricao = ? WHERE id = ?', (descricao, id))
+        conn.commit()
+        conn.close()
+
+        return jsonify({'message': 'escala atualizado com sucesso!'}), 200
+
+
+@app.route('/escala/<int:id>/delete', methods=['POST'])
+# @login_required
+def delete_escala(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Verificar se a escala existe
+    cursor.execute('SELECT * FROM escala WHERE id = ?', (id,))
+    escala = cursor.fetchone()
+
+    if not escala:
+        conn.close()
+        return jsonify({'error': 'escala não encontrado'}), 404
+
+    cursor.execute('DELETE FROM escala WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({'message': 'escala deletado com sucesso!'}), 200
+
+
+@app.route('/escalas')
+# @login_required
+def list_escalas():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT * FROM escala')
+    escalas = cursor.fetchall()
+
+    # Verifica se a tabela está vazia
+    if not escalas:
+        conn.close()
+        return jsonify({'message': 'Tabela de escalas vazia.'}), 200
+
+    escalas_json = [
+        {
+            "id": escala[0],           # Acesse os valores por índice, assumindo que a consulta retorna as colunas esperadas
+            "descricao": escala[1]
+        }
+        for escala in escalas
+    ]
+
+    conn.close()
+
+    # Retorna a lista de escalas
+    return jsonify({'escalas': escalas_json}), 200
+
 # estrutura para mensageria 
 @app.route('/chat')
 def index():

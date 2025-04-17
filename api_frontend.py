@@ -787,6 +787,98 @@ def importar_ponto_frontend():
         
     return render_template('importar_ponto.html')
 
+@app.route('/escala', methods=['GET', 'POST'])
+def add_escala():
+    if request.method == 'POST':
+        descricao = request.form.get('descricao')
+
+        if not descricao:
+            return render_template('add_escala.html', mensagem="Dados incompletos")
+        try:
+
+            response = requests.post(f"{api_url}/escala", json={"descricao": descricao})
+            
+            print("Resposta da API:", response.status_code, response.text)
+
+            if response.status_code == 200 or response.status_code == 201:
+                return redirect(url_for('list_escalas'))
+            else:
+                return render_template('add_escala.html', mensagem="Erro ao adicionar a escala")
+        except requests.exceptions.RequestException as e:
+            return render_template('error.html', mensagem=f"Erro de conexão com a API: {str(e)}"), 500
+        
+    return render_template('add_escala.html')
+
+
+@app.route('/escala/<int:id>', methods=['GET', 'POST'])
+def edit_escala(id):
+    if request.method == 'POST' and request.form.get('_method') == 'PUT':
+        descricao = request.form.get('descricao')  
+
+        if not descricao:
+            return render_template('edit_escala.html', message='Dados incompletos'), 400
+
+        response = requests.put(f"{api_url}/escala/{id}", json={"descricao": descricao})
+
+        if response.status_code == 200 or response.status_code == 201:
+            escala = requests.get(f"{api_url}/escala/{id}").json()
+            #return redirect(url_for('list_escalas')), 200
+            return render_template('edit_escala.html', message='escala atualizada com sucesso!', escala=escala), 200
+        else:
+            return render_template('edit_escala.html', message='Erro ao atualizar escala'), response.status_code
+
+    response = requests.get(f"{api_url}/escala/{id}")
+    
+    if response.status_code != 200:
+        return render_template('edit_escala.html', message='escala não encontrada'), 404
+
+    escala = response.json()  
+    
+    return render_template('edit_escala.html', escala=escala)  
+
+@app.route('/escala/<int:id>/delete', methods=['POST'])
+def delete_escala(id):
+    try:
+        response = requests.get(f"{api_url}/escala/{id}")
+        if response.status_code != 200:
+            return render_template('error.html', message='escala não encontrada'), 404
+
+        response = requests.post(f"{api_url}/escala/{id}/delete")
+
+        if response.status_code == 200 or response.status_code == 201:
+            return redirect(url_for('list_escalas'))
+        else:
+            return render_template('error.html', message=f'Erro ao deletar escala: {response.text}'), response.status_code
+
+    except requests.exceptions.RequestException as e:
+        return render_template('error.html', message=f'Erro de conexão com a API: {str(e)}'), 500
+
+@app.route('/escala/<int:id>', methods=['GET'])
+def view_escala(id):
+    response = requests.get(f"{api_url}/escala/{id}")
+
+    if response.status_code == 200:
+        escala = response.json()
+        return render_template('view_escala.html', escala=escala), 200
+    else:
+        return render_template('error.html', message='escala não encontrada'), 404
+
+@app.route('/escalas', methods=['GET'])
+def list_escalas():
+    response = requests.get(f"{api_url}/escalas")
+
+    if response.status_code == 200:
+        try:
+            data = response.json()  # JSON retorna um dicionário
+            escalas = data.get("escalas", [])  # Pegamos apenas a lista dentro da chave "escalas"
+
+            return render_template('lista_escalas.html', escalas=escalas), 200
+        except ValueError:
+            return render_template('error.html', message='Erro ao processar resposta da API.'), 500
+    else:
+        return render_template('message.html', message='Tabela de escalas vazia.'), 200
+
+# endpoints para mensageria com socketio
 BACKEND_URL = 'http://127.0.0.1:5000'  # URL do backend de mensageria
 @app.route('/chat')
 def chat():
