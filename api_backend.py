@@ -28,10 +28,9 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# @app.route('/')
-# def index():
-#     return render_template('index.html')
-
+@app.context_processor
+def inject_user():
+    return dict(user=session.get('user'))
 
 @app.route('/funcionario', methods=['POST', 'GET'])
 def add_funcionario():
@@ -63,12 +62,12 @@ def add_funcionario():
         
         query = '''
             INSERT INTO FUNCIONARIO (matricula, nome, funcao, data_inicio, data_termino, 
-                                    departamento, gerente, endereco, telefone, cpf, rg, banco, agencia, conta_corrente)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                    departamento, escala_id, gerente, endereco, telefone, cpf, rg, banco, agencia, conta_corrente)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         '''
         values = (
             data.get('matricula'), data.get('nome'), data.get('funcao'), data.get('data_inicio'), data.get('data_termino'),
-            data.get('departamento'), data.get('gerente'), data.get('endereco'), data.get('telefone'), data.get('cpf'), 
+            data.get('departamento'), data.get('escala_id'), data.get('gerente'), data.get('endereco'), data.get('telefone'), data.get('cpf'), 
             data.get('rg'), data.get('banco'), data.get('agencia'), data.get('conta_corrente')
         )
 
@@ -125,13 +124,13 @@ def update_funcionario(matricula):
     query = '''
         UPDATE FUNCIONARIO
         SET nome = ?, funcao = ?, data_inicio = ?, data_termino = ?, 
-            departamento = ?, gerente = ?, endereco = ?, telefone = ?, 
+            departamento = ?, escala_id = ?, gerente = ?, endereco = ?, telefone = ?, 
             cpf = ?, rg = ?, banco = ?, agencia = ?, conta_corrente = ?
         WHERE matricula = ?
     '''
     values = (
         data['nome'], data['funcao'], data['data_inicio'], data.get('data_termino'),
-        data['departamento'], data.get('gerente'), data.get('endereco'), data['telefone'],
+        data['departamento'], data['escala_id'], data.get('gerente'), data.get('endereco'), data['telefone'],
         data['cpf'], data['rg'], data['banco'], data['agencia'], data['conta_corrente'], matricula
     )
 
@@ -165,6 +164,7 @@ def get_funcionario(matricula):
         'data_inicio': funcionario['data_inicio'],
         'data_termino': funcionario['data_termino'],
         'departamento': funcionario['departamento'],
+        'escala_id': funcionario['escala_id'],
         'gerente': funcionario['gerente'],
         'endereco': funcionario['endereco'],
         'telefone': funcionario['telefone'],
@@ -201,14 +201,15 @@ def list_funcionarios():
             "data_inicio": funcionario[3],
             "data_termino": funcionario[4],
             "departamento": funcionario[5],
-            "gerente": funcionario[6],
-            "endereco": funcionario[7],
-            "telefone": funcionario[8],
-            "cpf": funcionario[9],
-            "rg": funcionario[10],
-            "banco": funcionario[11],
-            "agencia": funcionario[12],
-            "conta_corrente": funcionario[13]
+            "escala_id": funcionario[6],
+            "gerente": funcionario[7],
+            "endereco": funcionario[8],
+            "telefone": funcionario[9],
+            "cpf": funcionario[10],
+            "rg": funcionario[11],
+            "banco": funcionario[12],
+            "agencia": funcionario[13],
+            "conta_corrente": funcionario[14]
         }
         for funcionario in funcionarios
     ]
@@ -714,14 +715,14 @@ def list_eventos():
 @app.route('/ponto', methods=['GET', 'POST'])
 # @login_required
 def add_ponto():
-    conn = None 
+    conn = None
     try:
         data = request.json
-    
+
         hora_entrada = data.get('hora_entrada')
         hora_saida = data.get('hora_saida')
         data_ponto = data.get('data')
-        nome_funcionario = data.get('funcionario') 
+        nome_funcionario = data.get('funcionario')
         evento = data.get('evento')
 
         if not all([hora_entrada, hora_saida, data_ponto, nome_funcionario, evento]):
@@ -730,67 +731,176 @@ def add_ponto():
         conn = get_db_connection()
         cursor = conn.cursor()
 
+        # Busca matrícula do funcionário
         cursor.execute('SELECT matricula FROM FUNCIONARIO WHERE nome = ?', (nome_funcionario,))
         resultado = cursor.fetchone()
-        
-        if resultado:
-            matricula_funcionario = resultado['matricula']
-    
-        else:
-            conn.close()
+
+        if not resultado:
             return jsonify({'error': 'Funcionário não encontrado'}), 404
 
+        matricula_funcionario = resultado['matricula']
+        
+        dias_semana = {
+            'Monday': 'Segunda',
+            'Tuesday': 'Terca',
+            'Wednesday': 'Quarta',
+            'Thursday': 'Quinta',
+            'Friday': 'Sexta',
+            'Saturday': 'Sabado',
+            'Sunday': 'Domingo'
+        }
+
+        dia_semana_en = datetime.datetime.strptime(data_ponto, '%Y-%m-%d').strftime('%A')
+        dia_semana = dias_semana.get(dia_semana_en, dia_semana_en)
+
+        # Busca escala do funcionário para o dia
+        cursor.execute('''
+            SELECT e.hora_entrada, e.hora_saida
+            FROM ESCALA e
+            JOIN ESCALA_FUNCIONARIO ef ON e.id = ef.escala_id
+            WHERE ef.funcionario = ? AND e.dia_semana = ?
+        ''', (matricula_funcionario, dia_semana))
+
+        escala = cursor.fetchone()
+
+        if escala:
+            entrada_escala = datetime.datetime.strptime(escala['hora_entrada'], '%H:%M')
+            saida_escala = datetime.datetime.strptime(escala['hora_saida'], '%H:%M')
+            entrada_real = datetime.datetime.strptime(hora_entrada, '%H:%M')
+            saida_real = datetime.datetime.strptime(hora_saida, '%H:%M')
+
+            horas_normais = max(0, (min(saida_real, saida_escala) - max(entrada_real, entrada_escala)).total_seconds() / 3600)
+            horas_extras = max(0, (saida_real - saida_escala).total_seconds() / 3600)
+        else:
+            horas_normais = 0
+            horas_extras = 0
+
+        # Busca código do evento
         cursor.execute('SELECT codigo FROM EVENTO WHERE descricao = ?', (evento,))
         evento_resultado = cursor.fetchone()
 
         if evento_resultado:
             evento = evento_resultado['codigo']
         else:
-            print("Evento não encontrado - continuando a insercao ")
+            evento = None  # ou algum valor default
 
         # Insere o ponto no banco
         cursor.execute(
-            'INSERT INTO PONTO (funcionario, data, hora_entrada, hora_saida, evento) VALUES (?, ?, ?, ?, ?)',
-            (matricula_funcionario, data_ponto, hora_entrada, hora_saida, evento)
+            'INSERT INTO PONTO (funcionario, data, hora_entrada, hora_saida, evento, horas_normais, horas_extras) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            (matricula_funcionario, data_ponto, hora_entrada, hora_saida, evento, horas_normais, horas_extras)
         )
         conn.commit()
-        
+
         return jsonify({'message': 'Ponto registrado com sucesso!'}), 201
 
     except Exception as e:
-        conn.rollback()
+        if conn:
+            conn.rollback()
         return jsonify({'error': f'Erro ao registrar ponto: {str(e)}'}), 500
 
     finally:
-        conn.close()
+        if conn:
+            conn.close()
 
 
 @app.route('/ponto/<int:id>', methods=['PUT'])
 # @login_required
 def edit_ponto(id):
-    data = request.json
-    #id = request.form.get('id')
-    hora_entrada = data.get('hora_entrada')
-    hora_saida = data.get('hora_saida')
-    data_ponto = data.get('data')
-    funcionario = data.get('funcionario')
-    evento = data.get('evento')
+    try:
+        data = request.json
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+        hora_entrada = data.get('hora_entrada')
+        hora_saida = data.get('hora_saida')
+        data_ponto = data.get('data')
+        nome_funcionario = data.get('funcionario')
+        evento = data.get('evento')
 
-    cursor.execute('SELECT * FROM EVENTO WHERE id = ?', (id,))
-    ponto = cursor.fetchone()
+        if not all([hora_entrada, hora_saida, data_ponto, nome_funcionario, evento]):
+            return jsonify({'error': 'Dados incompletos'}), 400
 
-    if not ponto:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verifica se ponto existe
+        cursor.execute('SELECT * FROM PONTO WHERE id = ?', (id,))
+        ponto_existente = cursor.fetchone()
+
+        if not ponto_existente:
+            conn.close()
+            return jsonify({'error': 'Ponto não encontrado'}), 404
+
+        # Busca matrícula do funcionário
+        cursor.execute('SELECT matricula FROM FUNCIONARIO WHERE nome = ?', (nome_funcionario,))
+        resultado = cursor.fetchone()
+
+        if not resultado:
+            conn.close()
+            return jsonify({'error': 'Funcionário não encontrado'}), 404
+
+        matricula_funcionario = resultado['matricula']
+
+        # Mapeamento dos dias para português
+        dias_semana = {
+            'Monday': 'Segunda',
+            'Tuesday': 'Terca',
+            'Wednesday': 'Quarta',
+            'Thursday': 'Quinta',
+            'Friday': 'Sexta',
+            'Saturday': 'Sabado',
+            'Sunday': 'Domingo'
+        }
+        dia_semana_en = datetime.datetime.strptime(data_ponto, '%Y-%m-%d').strftime('%A')
+        dia_semana = dias_semana.get(dia_semana_en, dia_semana_en)
+
+        # Busca escala do funcionário para o dia
+        cursor.execute('''
+            SELECT e.hora_entrada, e.hora_saida
+            FROM ESCALA e
+            JOIN ESCALA_FUNCIONARIO ef ON e.id = ef.escala_id
+            WHERE ef.funcionario = ? AND e.dia_semana = ?
+        ''', (matricula_funcionario, dia_semana))
+
+        escala = cursor.fetchone()
+
+        if escala:
+            entrada_escala = datetime.datetime.strptime(escala['hora_entrada'], '%H:%M')
+            saida_escala = datetime.datetime.strptime(escala['hora_saida'], '%H:%M')
+            entrada_real = datetime.datetime.strptime(hora_entrada, '%H:%M')
+            saida_real = datetime.datetime.strptime(hora_saida, '%H:%M')
+
+            horas_normais = max(0, (min(saida_real, saida_escala) - max(entrada_real, entrada_escala)).total_seconds() / 3600)
+            horas_extras = max(0, (saida_real - saida_escala).total_seconds() / 3600)
+        else:
+            horas_normais = 0
+            horas_extras = 0
+
+        # Busca código do evento
+        cursor.execute('SELECT codigo FROM EVENTO WHERE descricao = ?', (evento,))
+        evento_resultado = cursor.fetchone()
+
+        if evento_resultado:
+            evento_codigo = evento_resultado['codigo']
+        else:
+            evento_codigo = None  # ou algum valor padrão
+
+        # Atualiza o ponto
+        cursor.execute('''
+            UPDATE PONTO
+            SET funcionario = ?, data = ?, hora_entrada = ?, hora_saida = ?, evento = ?, horas_normais = ?, horas_extras = ?
+            WHERE id = ?
+        ''', (matricula_funcionario, data_ponto, hora_entrada, hora_saida, evento_codigo, horas_normais, horas_extras, id))
+
+        conn.commit()
         conn.close()
-        return jsonify({'error': 'Ponto não encontrado'}), 404
 
-    cursor.execute('UPDATE PONTO SET funcionario = ?, data = ?, hora_entrada = ?, hora_saida = ?, evento = ? WHERE id = ?', (hora_entrada, hora_saida, data_ponto, funcionario, evento, id))
-    conn.commit()
-    conn.close()
+        return jsonify({'message': 'Ponto atualizado com sucesso!'}), 200
 
-    return jsonify({'message': 'Ponto atualizado com sucesso!'})
+    except Exception as e:
+        if conn:
+            conn.rollback()
+            conn.close()
+        return jsonify({'error': f'Erro ao atualizar ponto: {str(e)}'}), 500
+
 
 @app.route('/ponto/<int:id>/delete', methods=['DELETE'])
 # @login_required
@@ -1040,7 +1150,7 @@ def listar_usuarios():
     cursor.close()
     conn.close()
 
-    usuarios_json = [{"id": u['id'], "nome": u['nome']} for u in usuarios]
+    usuarios_json = [{"id": u['id'], "nome": u['nome'], "matricula": u['user_matricula']} for u in usuarios]
 
     return jsonify({"usuarios": usuarios_json})
 
@@ -1064,9 +1174,9 @@ def login():
         conn.close()
 
         if usuario and check_password_hash(usuario['senha'], senha):
-            session['user_id'] = usuario['id']
-            session['user_nome'] = usuario['nome']
-            return jsonify({"message":"Login bem-sucedido", "user_id": usuario['id'], "user_name": usuario['nome']})
+            user_data = {"id": usuario['id'], "nome": usuario['nome']}
+            session['user'] = user_data
+            return jsonify({"message": "Login bem-sucedido", **user_data})
         else:
             return jsonify({"error":"Usuario ou senha incorretos"}), 401
 
@@ -1293,10 +1403,145 @@ def list_escalas():
     # Retorna a lista de escalas
     return jsonify({'escalas': escalas_json}), 200
 
+@app.route('/escala_funcionario', methods=['POST'])
+def assign_escala_to_funcionario():
+    try:
+        data = request.json
+
+        funcionario = data.get('funcionario')  # ID do funcionário
+        escala_id = data.get('escala_id')     # ID da escala
+
+        if not all([funcionario, escala_id]):
+            return jsonify({'error': 'Dados incompletos'}), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verifica se a escala existe
+        cursor.execute('SELECT * FROM ESCALA WHERE id = ?', (escala_id,))
+        escala = cursor.fetchone()
+
+        if not escala:
+            return jsonify({'error': 'Escala não encontrada'}), 404
+
+        # Verifica se o funcionário existe
+        cursor.execute('SELECT * FROM FUNCIONARIO WHERE matricula = ?', (funcionario,))
+        funcionario_db = cursor.fetchone()
+
+        if not funcionario_db:
+            return jsonify({'error': 'Funcionário não encontrado'}), 404
+
+        # Associa o funcionário à escala
+        cursor.execute('''
+            INSERT INTO ESCALA_FUNCIONARIO (funcionario, escala_id) 
+            VALUES (?, ?)
+        ''', (funcionario, escala_id))
+        conn.commit()
+
+        return jsonify({'message': 'Funcionário associado à escala com sucesso!'}), 201
+
+    except Exception as e:
+        return jsonify({'error': f'Erro ao associar funcionário à escala: {str(e)}'}), 500
+
+@app.route('/escala_funcionario', methods=['GET'])
+def list_escala_funcionarios():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute('''
+            SELECT EF.id, EF.funcionario, F.nome, EF.escala_id, E.descricao 
+            FROM ESCALA_FUNCIONARIO EF
+            JOIN FUNCIONARIO F ON EF.funcionario = F.matricula
+            JOIN ESCALA E ON EF.escala_id = E.id
+        ''')
+        resultados = cursor.fetchall()
+
+        lista = []
+        for row in resultados:
+            lista.append({
+                'id': row['id'],
+                'funcionario': row['funcionario'],
+                'nome_funcionario': row['nome'],
+                'escala_id': row['escala_id'],
+                'descricao_escala': row['descricao']
+            })
+
+        return jsonify({'associacoes': lista}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/escala_funcionario/<int:id>', methods=['PUT'])
+def edit_escala_funcionario(id):
+    try:
+        data = request.json
+
+        funcionario = data.get('funcionario')
+        escala_id = data.get('escala_id')
+
+        if not all([funcionario, escala_id]):
+            return jsonify({'error': 'Dados incompletos'}), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verifica se associação existe
+        cursor.execute('SELECT * FROM ESCALA_FUNCIONARIO WHERE id = ?', (id,))
+        associacao = cursor.fetchone()
+        if not associacao:
+            return jsonify({'error': 'Associação não encontrada'}), 404
+
+        # Verifica se escala existe
+        cursor.execute('SELECT * FROM ESCALA WHERE id = ?', (escala_id,))
+        escala = cursor.fetchone()
+        if not escala:
+            return jsonify({'error': 'Escala não encontrada'}), 404
+
+        # Verifica se funcionário existe
+        cursor.execute('SELECT * FROM FUNCIONARIO WHERE matricula = ?', (funcionario,))
+        funcionario_db = cursor.fetchone()
+        if not funcionario_db:
+            return jsonify({'error': 'Funcionário não encontrado'}), 404
+
+        # Atualiza a associação
+        cursor.execute('''
+            UPDATE ESCALA_FUNCIONARIO 
+            SET funcionario = ?, escala_id = ? 
+            WHERE id = ?
+        ''', (funcionario, escala_id, id))
+
+        conn.commit()
+        return jsonify({'message': 'Associação atualizada com sucesso!'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/escala_funcionario/<int:id>', methods=['DELETE'])
+def delete_escala_funcionario(id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verifica se associação existe
+        cursor.execute('SELECT * FROM ESCALA_FUNCIONARIO WHERE id = ?', (id,))
+        associacao = cursor.fetchone()
+        if not associacao:
+            return jsonify({'error': 'Associação não encontrada'}), 404
+
+        # Exclui a associação
+        cursor.execute('DELETE FROM ESCALA_FUNCIONARIO WHERE id = ?', (id,))
+        conn.commit()
+
+        return jsonify({'message': 'Associação removida com sucesso!'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # estrutura para mensageria 
 @app.route('/chat')
 def index():
-    return render_template('chat.html')
+    return render_template('chat.html', user=session.get('user'))
 
 @app.route('/conversas', methods=['POST'])
 def criar_conversa():

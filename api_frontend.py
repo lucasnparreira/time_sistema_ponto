@@ -34,6 +34,10 @@ def get_matricula_by_nome(nome):
         return response.json().get('matricula')
     return None
 
+@app.context_processor
+def inject_user():
+    return dict(user=session.get('user'))
+
 @app.route('/')
 def index():
     user = session.get('user')
@@ -49,8 +53,10 @@ def login():
         
         if response.status_code == 200:
             user_data = response.json()
-            session['user'] = user_data
-            session['user_nome'] = user_data.get('user_name')
+            session['user'] = {
+                'id': user_data.get('id'),
+                'nome': user_data.get('nome')
+            }
             print(session['user'])
             print("Usuario conectado")
             return redirect(url_for('index'))
@@ -60,7 +66,7 @@ def login():
 
 @app.route('/home')
 def home():
-    if 'user_id' not in session:
+    if 'user' not in session:
         return redirect(url_for('login'))
     return render_template('index.html', user=session.get('user'))
 
@@ -105,6 +111,7 @@ def get_funcionario(matricula):
             "data_inicio": request.form.get("data_inicio"),
             "data_termino": request.form.get("data_termino"),
             "departamento": request.form.get("departamento"),
+            "escala_id": request.form.get("escala_id"),
             "gerente": request.form.get("gerente"),
             "endereco": request.form.get("endereco"),
             "telefone": request.form.get("telefone"),
@@ -154,6 +161,7 @@ def add_funcionario():
             "data_inicio": request.form.get("data_inicio"),
             "data_termino": request.form.get("data_termino"),
             "departamento": request.form.get("departamento"),
+            "escala_id": request.form.get("escala_id"),
             "gerente": request.form.get("gerente"),
             "endereco": request.form.get("endereco"),
             "telefone": request.form.get("telefone"),
@@ -195,6 +203,7 @@ def update_funcionario(matricula):
             "data_inicio": request.form.get("data_inicio"),
             "data_termino": request.form.get("data_termino"),
             "departamento": request.form.get("departamento"),
+            "escala_id": request.form.get("escala_id"),
             "gerente": request.form.get("gerente"),
             "endereco": request.form.get("endereco"),
             "telefone": request.form.get("telefone"),
@@ -877,6 +886,81 @@ def list_escalas():
             return render_template('error.html', message='Erro ao processar resposta da API.'), 500
     else:
         return render_template('message.html', message='Tabela de escalas vazia.'), 200
+
+@app.route('/escala_funcionario', methods=['GET', 'POST'])
+def add_escala_funcionario():
+    if request.method == 'POST':
+        funcionario = request.form.get('funcionario')
+        escala = request.form.get('escala')
+        
+        if not funcionario or not escala:
+            return render_template('error.html', message='Dados incompletos')
+        
+        # Chama a API para criar a associação no banco
+        response = requests.post(f"{api_url}/escala_funcionario", json={
+            'funcionario': funcionario,
+            'escala_id': escala
+        })
+        
+        if response.status_code == 200:
+            return redirect(url_for('list_escala_funcionario'))
+        else:
+            return render_template('error.html', message='Erro ao adicionar associação')
+
+    # Para renderizar as escalas e funcionários no form
+    response_funcionarios = requests.get(f"{api_url}/funcionarios")
+    response_escalas = requests.get(f"{api_url}/escalas")
+    
+    funcionarios = response_funcionarios.json().get('funcionarios', [])
+    escalas = response_escalas.json().get('escalas', [])
+    
+    return render_template('add_escala_funcionario.html', funcionarios=funcionarios, escalas=escalas)
+
+@app.route('/lista_escala_funcionario', methods=['GET'])
+def list_escala_funcionario():
+    response = requests.get(f"{api_url}/escala_funcionario")
+    print("Resposta da API:", response.status_code)
+    print("Conteúdo da resposta:", response.text) 
+    associacoes = response.json().get('associacoes', [])
+    return render_template('list_escala_funcionario.html', associacoes=associacoes)
+
+@app.route('/escala_funcionario/<int:id>', methods=['GET', 'POST'])
+def edit_escala_funcionario(id):
+    if request.method == 'GET':
+        response = requests.get(f"{api_url}/escala_funcionario/{id}")
+        associacao = response.json().get('associacao', {})
+        
+        # Carregar escalas e funcionários disponíveis
+        response_funcionarios = requests.get(f"{api_url}/funcionarios")
+        response_escalas = requests.get(f"{api_url}/escala")
+        
+        funcionarios = response_funcionarios.json().get('funcionarios', [])
+        escalas = response_escalas.json().get('escalas', [])
+        
+        return render_template('edit_escala_funcionario.html', associacao=associacao, funcionarios=funcionarios, escalas=escalas)
+
+    elif request.method == 'POST':
+        funcionario = request.form.get('funcionario')
+        escala = request.form.get('escala')
+        
+        response = requests.put(f"{api_url}/escala_funcionario/{id}", json={
+            'funcionario': funcionario,
+            'escala_id': escala
+        })
+        
+        if response.status_code == 200:
+            return redirect(url_for('list_escala_funcionario'))
+        else:
+            return render_template('error.html', message='Erro ao atualizar associação')
+
+@app.route('/escala_funcionario/<int:id>', methods=['DELETE'])
+def delete_escala_funcionario(id):
+    response = requests.delete(f"{api_url}/escala_funcionario/{id}")
+    
+    if response.status_code == 200:
+        return redirect(url_for('list_escala_funcionario'))
+    else:
+        return render_template('error.html', message='Erro ao excluir associação')
 
 # endpoints para mensageria com socketio
 BACKEND_URL = 'http://127.0.0.1:5000'  # URL do backend de mensageria

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar Associação de Escala e Funcionário</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    {% include 'menu.html' %}
+    
+    <div class="container-relatorios">
+        <h2>Adicionar Nova Associação de Escala e Funcionário</h2>
+        <form action="{{ url_for('add_escala_funcionario') }}" method="POST">
+            <label for="funcionario">Funcionário:</label>
+            <select name="funcionario" id="funcionario" required>
+                <option value="">Selecione um funcionário</option>
+                {% for funcionario in funcionarios %}
+                    <option value="{{ funcionario.matricula }}">{{ funcionario.nome }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="escala">Escala:</label>
+            <select name="escala" id="escala" required>
+                <option value="">Selecione uma escala</option>
+                {% for escala in escalas %}
+                    <option value="{{ escala.id }}">{{ escala.descricao }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Adicionar Associação</button>
+        </form>
+        
+        <button id="btn-retornar"><a href="{{ url_for('list_escala_funcionario') }}">Voltar para a lista de associações</a></button>
+</div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

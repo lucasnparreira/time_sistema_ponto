@@ -2,36 +2,37 @@
 <head>
     <meta charset="UTF-8">
     <title>Chat Ponto em Tempo Real</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <style>
-        #chat { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 10px; }
-        .msg { margin: 5px 0; }
-    </style>
 </head>
 <body>
+    {% include 'menu.html' %}
 
-<h2>Conversas disponíveis</h2>
-<div id="conversas"></div>
+<div class="container-relatorios">
+    <h2>Chats disponíveis</h2>
+    <div id="conversas"></div>
 
-<h3>Criar nova conversa</h3>
-<input type="text" id="tituloConversa" placeholder="Título da conversa">
-<button onclick="criarConversa()">Criar</button>
+    <h2>Criar nova conversa</h2>
+    <input type="text" id="tituloConversa" placeholder="Título da conversa">
+    <button onclick="criarConversa()">Criar</button>
 
-<hr>
+    <hr>
 
-<h2>Chat</h2>
-<div id="chat"></div>
+    <h2>Chat</h2>
+    <div id="chat"></div>
 
-<input type="text" id="mensagem" placeholder="Digite sua mensagem">
-<button id="btnEnviar">Enviar</button>
+    <input type="text" id="mensagem" placeholder="Digite sua mensagem" style="width: 100%;">
+    <button id="btn-retornar">Enviar</button>
+</div>
 
 <script>
+    let usuarioMatricula = "{{ user.get('id') }}"
     let socket = io('http://localhost:5000')
     let conversaSelecionada = null;
-    let usuarioMatricula = prompt("Informe sua matrícula para se identificar:");
+    // let usuarioMatricula = prompt("Informe sua matrícula para se identificar:");
 
     socket.on('connect', () => {
-        console.log("✅ Conectado ao WebSocket");
+        console.log("✅ Conectado ao WebSocket com matricula: " + usuarioMatricula);
     });
 
     socket.on('nova_mensagem', (msg) => {
@@ -73,21 +74,35 @@
 
     function abrirConversa(conversaId) {
         conversaSelecionada = conversaId;
-        document.getElementById('chat').innerHTML = '';
+        const chatDiv = document.getElementById('chat');
 
+        if (!chatDiv) {
+            console.error("❌ Div de chat não encontrada na hora de abrir conversa!");
+            return;
+        }
+
+        chatDiv.innerHTML = '';
         // Entra na sala
         socket.emit('entrar_conversa', { conversa_id: conversaId });
-
+        
         // Busca histórico
         fetch(`/conversas/${conversaId}/mensagens`)
             .then(res => res.json())
             .then(data => {
+                console.log("Histórico recebido:", data);
                 data.forEach(m => adicionarMensagem(`${m.login_usuario}: ${m.conteudo}`));
             });
+        
+        console.log("Usuario entrou na conversa ", {conversaId})
     }
 
     function adicionarMensagem(texto) {
         const chatDiv = document.getElementById('chat');
+
+        if (!chatDiv) {
+            console.error("❌ Div de chat não encontrada!");
+            return;
+        }
         const p = document.createElement('p');
         p.className = 'msg';
         p.innerText = texto;
@@ -114,10 +129,13 @@
         document.getElementById('mensagem').value = '';
     }
 
-    document.getElementById('btnEnviar').addEventListener('click', enviarMensagem);
+    // document.getElementById('btn-retornar').addEventListener('click', enviarMensagem);
 
-    carregarConversas();
+    window.onload = () => {
+        carregarConversas();
+        document.getElementById('btn-retornar').addEventListener('click', enviarMensagem);
+    };
 </script>
-
+<script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

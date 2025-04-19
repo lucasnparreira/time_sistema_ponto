@@ -2,17 +2,10 @@
     <button class="menu-btn" onclick="toggleMenu()">☰ Menu</button>
 
     <div id="dropdownMenu" class="menu-dropdown">
-        {% if session['user_nome'] %}
-            <p>Bem-vindo, {{ session['user_nome'] }}!</p>
-        {% else %}
-            <p>Por favor, faça o login.</p>
-        {% endif %}
-
-        <a href="/">🏠 Home</a>
-
-        {% if not session['user_nome'] %}
-            <a href="/login">🔐 Login</a>
-        {% else %}
+        {% if user %}
+            <p>Bem-vindo, {{ user.nome }}!</p>
+            <a href="/">🏠 Home</a>
+            <a href="/logout">🚪 Logout</a>
 
             <div class="menu-section">
                 <button class="section-btn" onclick="toggleSection('cadastro')">Cadastro ▼</button>
@@ -22,6 +15,8 @@
                     <a href="/departamento">Departamento</a>
                     <a href="/funcao">Função</a>
                     <a href="/evento">Evento</a>
+                    <a href="/escala">Escala</a>
+                    <a href="/escala_funcionario">Associar escala x funcionario</a>
                     <a href="/usuario">Usuário</a>
                 </div>
             </div>
@@ -33,7 +28,8 @@
                     <a href="/pontos">Pontos</a>
                     <a href="/departamentos">Departamentos</a>
                     <a href="/funcoes">Funções</a>
-                    <a href="/eventos">Eventos</a>
+                    <a href="/escalas">Escalas</a>
+                    <a href="/lista_escala_funcionario">Listar escala x funcionario</a>
                     <a href="/usuarios">Usuários</a>
                 </div>
             </div>
@@ -51,7 +47,11 @@
                     <a href="{{ url_for('chat') }}">📄 Chat</a>
                 </div>
             </div>
-
+        
+        {% else %}
+            <p>Por favor, faça o login.</p>
+            <a href="/">🏠 Home</a>
+            <a href="/login">🔐 Login</a>
         {% endif %}
     </div>
 </div>

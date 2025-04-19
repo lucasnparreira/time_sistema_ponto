@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Associações de Escala</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    {% include 'menu.html' %}
+    <div class="container-relatorios">
+        <h2>Lista de Associações de Escala e Funcionário</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Funcionário</th>
+                    <th>Escala</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for associacao in associacoes %}
+                    <tr>
+                        <td>{{ associacao.id }}</td>
+                        <td>{{ associacao.nome_funcionario }}</td>
+                        <td>{{ associacao.descricao_escala }}</td>
+                        <td class="actions">
+                            <a href="{{ url_for('edit_escala_funcionario', id=associacao.id) }}">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form action="/escala_funcionario/{{ associacao.id }}" method="POST" onclick="return confirm('Tem certeza que deseja excluir?');">
+                                <button type="submit" style="border: none; color:red; background: none; align-items: center; ">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button id="btn-retornar"><a href="{{ url_for('add_escala_funcionario') }}">Adicionar nova associação</a></button>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

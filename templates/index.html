@@ -102,12 +102,13 @@
     </div>
     <script src="/static/script.js"></script>
     <script>
+        const usuarioMatricula = "{{ user_id }}"
         let socket = io('http://localhost:5000');
         let conversaSelecionada = null;
-        let usuarioMatricula = prompt("Informe sua matrícula para se identificar:");
-    
+        // let usuarioMatricula = prompt("Informe sua matrícula para se identificar:");
+
         socket.on('connect', () => {
-            console.log("✅ Conectado ao WebSocket");
+            console.log("✅ Conectado ao WebSocket como matricula: " + usuarioMatricula);
         });
     
         socket.on('nova_mensagem', (msg) => {
