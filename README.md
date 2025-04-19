@@ -77,7 +77,7 @@ python app_frontend.py
 6. **Acessar o Sistema no Navegador**
 Abra o navegador de sua preferência e acesse o sistema pelo seguinte link:
 
-Frontend: http://127.0.0.1:5001
+Frontend: http://127.0.0.1:8000
 
 Backend (API): http://127.0.0.1:5000 — Utilize para testar diretamente os endpoints da API (se necessário, com ferramentas como Postman ou Insomnia).
 
