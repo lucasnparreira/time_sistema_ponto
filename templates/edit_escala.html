@@ -9,21 +9,52 @@
 </head>
 <body>
     {% include 'menu.html' %}
-    <div class="container-relatorios">
-        <h2>Editar escala</h2>
-        {% if escala %}
-        <form action="{{ url_for('edit_escala', id=escala['id']) }}" method="POST">
-            <input type="hidden" name="_method" value="PUT">
-            <label for="descricao">Descrição:</label>
-            <input type="text" id="descricao" name="descricao" value="{{ escala['descricao'] }}" required><br><br>
-            <button type="submit">Atualizar escala</button>
-        </form>
-        {% else %}
-            <p>escala não encontrado ou erro ao tentar editar.</p>
-        {% endif %}
-        <button id="btn-retornar"><a href="{{ url_for('list_escalas') }}">Voltar</a></button>
-    </div>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
 
+    <div class="container-relatorios">
+        <h2>Editar Escala</h2>
+
+        {% if mensagem %}
+            <p style="color: red;">{{ mensagem }}</p>
+        {% endif %}
+
+        <form method="POST" action="/escala/{{ escala.id }}" id="formEditEscala">
+            <label>Descrição:</label>
+            <input type="text" name="descricao" value="{{ escala.descricao }}" required>
+
+            <label>Horarios:</label>
+            <div id="horariosContainer">
+                {% for h in escala.horarios %}
+                    <div>
+                        <input type="text" name="dia_{{ loop.index0 }}" value="{{ h.dia_semana }}" placeholder="Dia da semana" required>
+                        <input type="time" name="entrada_{{ loop.index0 }}" value="{{ h.hora_entrada }}" required>
+                        <input type="time" name="saida_{{ loop.index0 }}" value="{{ h.hora_saida }}" required>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <button type="button" onclick="addHorario()">Adicionar horário</button>
+            <button type="submit">Salvar alterações</button>
+        </form>
+
+        <a href="{{ url_for('list_escalas') }}">
+            <button id="btn-retornar">Voltar para a lista de escalas</button>
+        </a>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        let horarioCount = {{ escala.horarios|length }};
+
+        function addHorario() {
+            let container = document.getElementById('horariosContainer');
+            let html = `<div>
+                <input type="text" name="dia_${horarioCount}" placeholder="Dia da semana" required>
+                <input type="time" name="entrada_${horarioCount}" required>
+                <input type="time" name="saida_${horarioCount}" required>
+            </div>`;
+            container.insertAdjacentHTML('beforeend', html);
+            horarioCount++;
+        }
+    </script>
 </body>
 </html>

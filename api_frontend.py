@@ -800,12 +800,27 @@ def importar_ponto_frontend():
 def add_escala():
     if request.method == 'POST':
         descricao = request.form.get('descricao')
+        horarios = []
 
         if not descricao:
             return render_template('add_escala.html', mensagem="Dados incompletos")
         try:
+            for i in range(7):
+                dia = request.form.get(f'dia_{i}')
+                hora_entrada = request.form.get(f'entrada_{i}')
+                hora_saida = request.form.get(f'saida_{i}')
 
-            response = requests.post(f"{api_url}/escala", json={"descricao": descricao})
+                if dia and hora_entrada and hora_saida:
+                    horarios.append({
+                        'dia_semana': dia,
+                        'hora_entrada': hora_entrada,
+                        'hora_saida': hora_saida
+                    })
+            
+            response = requests.post(f"{api_url}/escala", json={
+                "descricao": descricao,
+                'horarios': horarios
+                })
             
             print("Resposta da API:", response.status_code, response.text)
 
@@ -821,18 +836,45 @@ def add_escala():
 
 @app.route('/escala/<int:id>', methods=['GET', 'POST'])
 def edit_escala(id):
-    if request.method == 'POST' and request.form.get('_method') == 'PUT':
+    if request.method == 'POST' or request.form.get('_method') == 'PUT':
         descricao = request.form.get('descricao')  
+        horarios = []
 
+        indices = []
+        for key in request.form.keys():
+            if key.startswith('dia_'):
+                indices.append(int(key.replace('dia_','')))
+        
+        indices = sorted(set(indices))
+
+        for i in indices:
+            dia = request.form.get(f'dia_{i}')
+            hora_entrada = request.form.get(f'entrada_{i}')
+            hora_saida = request.form.get(f'saida_{i}')
+
+            if dia and hora_entrada and hora_saida:
+                horarios.append({
+                    'dia_semana': dia,
+                    'hora_entrada': hora_entrada,
+                    'hora_saida': hora_saida
+                })
+                i += 1
+            else:
+                break
+            
         if not descricao:
             return render_template('edit_escala.html', message='Dados incompletos'), 400
 
-        response = requests.put(f"{api_url}/escala/{id}", json={"descricao": descricao})
+        print("Horarios:", horarios)
+        response = requests.put(f"{api_url}/escala/{id}", json={
+            "descricao": descricao,
+            "horarios": horarios
+            })
 
         if response.status_code == 200 or response.status_code == 201:
             escala = requests.get(f"{api_url}/escala/{id}").json()
             #return redirect(url_for('list_escalas')), 200
-            return render_template('edit_escala.html', message='escala atualizada com sucesso!', escala=escala), 200
+            return render_template('lista_escalas.html', message='escala atualizada com sucesso!', escala=escala), 200
         else:
             return render_template('edit_escala.html', message='Erro ao atualizar escala'), response.status_code
 
@@ -843,6 +885,7 @@ def edit_escala(id):
 
     escala = response.json()  
     
+    print(escala)
     return render_template('edit_escala.html', escala=escala)  
 
 @app.route('/escala/<int:id>/delete', methods=['POST'])
@@ -879,7 +922,7 @@ def list_escalas():
     if response.status_code == 200:
         try:
             data = response.json()  # JSON retorna um dicionário
-            escalas = data.get("escalas", [])  # Pegamos apenas a lista dentro da chave "escalas"
+            escalas = data # Pegamos apenas a lista dentro da chave "escalas"
 
             return render_template('lista_escalas.html', escalas=escalas), 200
         except ValueError:
@@ -912,7 +955,7 @@ def add_escala_funcionario():
     response_escalas = requests.get(f"{api_url}/escalas")
     
     funcionarios = response_funcionarios.json().get('funcionarios', [])
-    escalas = response_escalas.json().get('escalas', [])
+    escalas = response_escalas.json()#.get('escalas', [])
     
     return render_template('add_escala_funcionario.html', funcionarios=funcionarios, escalas=escalas)
 

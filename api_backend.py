@@ -1302,6 +1302,7 @@ def importar_ponto():
 def add_escala():
     data = request.json
     descricao = data.get('descricao')
+    horarios = data.get('horarios', [])
 
     if not descricao:
         return jsonify({'error': 'Dados incompletos'}), 400
@@ -1310,10 +1311,18 @@ def add_escala():
     cursor = conn.cursor()
 
     cursor.execute('INSERT INTO escala (descricao) VALUES (?)', (descricao,))
+    escala_id = cursor.lastrowid
+
+    for h in horarios:
+        cursor.execute('''
+            INSERT INTO ESCALA_HORARIOS (escala_id, dia_semana, hora_entrada, hora_saida)
+            VALUES (?, ?, ?, ?) 
+        ''', (escala_id, h['dia_semana'], h['hora_entrada'], h['hora_saida']))
+
     conn.commit()
     conn.close()
 
-    return jsonify({'message': 'escala criado com sucesso!'}), 201
+    return jsonify({'message': 'escala criada com sucesso!'}), 201
 
 @app.route('/escala/<int:id>', methods=['GET', 'PUT'])
 def edit_escala(id):
@@ -1323,36 +1332,63 @@ def edit_escala(id):
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM escala WHERE id = ?', (id,))
         escala = cursor.fetchone()
-        conn.close()
 
         if not escala:
+            conn.close()
             return jsonify({'error': 'escala não encontrada'}), 404
 
+        cursor.execute('SELECT dia_semana, hora_entrada, hora_saida FROM ESCALA_HORARIOS WHERE escala_id = ?', (id,))
+        horarios = cursor.fetchall()
+        conn.close()
+
+        horarios_list = []
+        for h in horarios:
+            horarios_list.append({
+                'dia_semana': h[0],
+                'hora_entrada': h[1],
+                'hora_saida': h[2]
+            })
+        
         # Retorna os dados da escala em formato JSON
-        return jsonify({'id': escala[0], 'descricao': escala[1]}), 200
+        return jsonify({
+            'id': escala[0], 
+            'descricao': escala[1],
+            'horarios': horarios_list
+            }), 200
 
     elif request.method == 'PUT':
         # Atualiza a escala com os dados fornecidos no corpo da requisição
         data = request.json
         descricao = data.get('descricao')
+        horarios = data.get('horarios', [])
 
         if not descricao:
             return jsonify({'error': 'Descrição é obrigatória'}), 400
 
         conn = get_db_connection()
         cursor = conn.cursor()
+
         cursor.execute('SELECT * FROM escala WHERE id = ?', (id,))
         escala = cursor.fetchone()
 
         if not escala:
             conn.close()
-            return jsonify({'error': 'escala não encontrado'}), 404
+            return jsonify({'error': 'escala não encontrada'}), 404
 
         cursor.execute('UPDATE escala SET descricao = ? WHERE id = ?', (descricao, id))
+
+        cursor.execute('DELETE FROM ESCALA_HORARIOS WHERE escala_id = ?', (id,))
+
+        for h in horarios:
+            cursor.execute('''
+                INSERT INTO ESCALA_HORARIOS (escala_id, dia_semana, hora_entrada, hora_saida)
+                VALUES (?, ?, ?, ?)
+            ''', (id, h['dia_semana'], h['hora_entrada'], h['hora_saida']))
+
         conn.commit()
         conn.close()
 
-        return jsonify({'message': 'escala atualizado com sucesso!'}), 200
+        return jsonify({'message': 'escala atualizada com sucesso!'}), 200
 
 
 @app.route('/escala/<int:id>/delete', methods=['POST'])
@@ -1369,6 +1405,7 @@ def delete_escala(id):
         conn.close()
         return jsonify({'error': 'escala não encontrado'}), 404
 
+    cursor.execute("DELETE FROM ESCALA_HORARIOS WHERE escala_id = ?", (id,))
     cursor.execute('DELETE FROM escala WHERE id = ?', (id,))
     conn.commit()
     conn.close()
@@ -1376,7 +1413,7 @@ def delete_escala(id):
     return jsonify({'message': 'escala deletado com sucesso!'}), 200
 
 
-@app.route('/escalas')
+@app.route('/escalas', methods=['GET'])
 # @login_required
 def list_escalas():
     conn = get_db_connection()
@@ -1389,19 +1426,21 @@ def list_escalas():
     if not escalas:
         conn.close()
         return jsonify({'message': 'Tabela de escalas vazia.'}), 200
-
-    escalas_json = [
-        {
-            "id": escala[0],           # Acesse os valores por índice, assumindo que a consulta retorna as colunas esperadas
-            "descricao": escala[1]
-        }
-        for escala in escalas
-    ]
+    
+    result = []
+    for e in escalas:
+        cursor.execute("SELECT * FROM ESCALA_HORARIOS WHERE escala_id = ?", (e['id'],))
+        horarios = cursor.fetchall()
+        result.append({
+            'id': e['id'],
+            'descricao': e['descricao'],
+            'horarios': [dict(h) for h in horarios]
+        })
 
     conn.close()
 
     # Retorna a lista de escalas
-    return jsonify({'escalas': escalas_json}), 200
+    return jsonify(result), 200
 
 @app.route('/escala_funcionario', methods=['POST'])
 def assign_escala_to_funcionario():
